@@ -1,0 +1,2558 @@
+{
+  "timestamp": "2026-10-05 19:10:54",
+  "overall_status": "ALL PASS",
+  "phase1_benchmark_summary": {
+    "task1_dbn_inference": {
+      "status": "PASS",
+      "pgmpy_total_time_ms": 24.22,
+      "pgmpy_avg_frame_time_ms": 2.2,
+      "threshold_ms": 1500.0,
+      "numpy_fallback_time_ms": 0.23,
+      "numpy_speedup": 105.1
+    },
+    "task2_rspp_astar": {
+      "status": "PASS",
+      "primary_pair": "HQ_Chennai -> WH_30_Nagercoil",
+      "execution_time_ms": 0.65,
+      "threshold_ms": 300.0,
+      "paths_evaluated": 140,
+      "paths_pruned_fsd": 46,
+      "pruning_efficiency_pct": 65.7,
+      "pareto_solutions_count": 2,
+      "top_solutions": [
+        {
+          "route": "HQ_Chennai -> Hub_Cuddalore -> Hub_Thanjavur -> Hub_Tiruchirappalli -> HQ_Madurai -> Hub_Tirunelveli -> WH_30_Nagercoil",
+          "path_nodes": [
+            "HQ_Chennai",
+            "Hub_Cuddalore",
+            "Hub_Thanjavur",
+            "Hub_Tiruchirappalli",
+            "HQ_Madurai",
+            "Hub_Tirunelveli",
+            "WH_30_Nagercoil"
+          ],
+          "travel_time_hr": 14.97,
+          "on_time_reliability_alpha": 0.7827,
+          "disruption_prob": 0.2173,
+          "hops": 6
+        },
+        {
+          "route": "HQ_Chennai -> Hub_Cuddalore -> Hub_Thanjavur -> Hub_Tiruchirappalli -> Hub_Thoothukudi -> WH_30_Nagercoil",
+          "path_nodes": [
+            "HQ_Chennai",
+            "Hub_Cuddalore",
+            "Hub_Thanjavur",
+            "Hub_Tiruchirappalli",
+            "Hub_Thoothukudi",
+            "WH_30_Nagercoil"
+          ],
+          "travel_time_hr": 15.2,
+          "on_time_reliability_alpha": 0.8153,
+          "disruption_prob": 0.1847,
+          "hops": 5
+        }
+      ]
+    },
+    "task3_geospatial_validation": {
+      "status": "PASS",
+      "node_counts": {
+        "HQ": 3,
+        "Hub": 10,
+        "Warehouse": 30,
+        "Total": 43,
+        "valid": true
+      },
+      "all_nodes_in_tn_bounds": true,
+      "is_strongly_connected": true,
+      "isolated_nodes_count": 0,
+      "reachability_verified": true,
+      "total_directed_edges": 128,
+      "unique_road_corridors": 64,
+      "distance_stats_km": {
+        "min": 15.71,
+        "avg": 88.63,
+        "max": 292.26
+      },
+      "travel_time_stats_hr": {
+        "min": 0.29,
+        "avg": 1.61,
+        "max": 5.31
+      }
+    }
+  },
+  "geojson_network": {
+    "type": "FeatureCollection",
+    "metadata": {
+      "network_name": "Tamil Nadu Resilient Logistics Multi-Echelon Network",
+      "total_nodes": 43,
+      "hqs": 3,
+      "hubs": 10,
+      "warehouses": 30,
+      "total_edges": 128,
+      "unique_routes": 64,
+      "crs": "EPSG:4326"
+    },
+    "features": [
+      {
+        "type": "Feature",
+        "id": "HQ_Chennai",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            80.2707,
+            13.0827
+          ]
+        },
+        "properties": {
+          "id": "HQ_Chennai",
+          "name": "Chennai Central HQ",
+          "type": "HQ",
+          "tier": 1,
+          "district": "Chennai",
+          "lat": 13.0827,
+          "lon": 80.2707
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "HQ_Coimbatore",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            76.9558,
+            11.0168
+          ]
+        },
+        "properties": {
+          "id": "HQ_Coimbatore",
+          "name": "Coimbatore Western HQ",
+          "type": "HQ",
+          "tier": 1,
+          "district": "Coimbatore",
+          "lat": 11.0168,
+          "lon": 76.9558
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "HQ_Madurai",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            78.1198,
+            9.9252
+          ]
+        },
+        "properties": {
+          "id": "HQ_Madurai",
+          "name": "Madurai Southern HQ",
+          "type": "HQ",
+          "tier": 1,
+          "district": "Madurai",
+          "lat": 9.9252,
+          "lon": 78.1198
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Tiruvallur",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            79.9079,
+            13.1437
+          ]
+        },
+        "properties": {
+          "id": "Hub_Tiruvallur",
+          "name": "Tiruvallur Northern Hub",
+          "type": "Hub",
+          "tier": 2,
+          "district": "Tiruvallur",
+          "lat": 13.1437,
+          "lon": 79.9079
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Vellore",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            79.1325,
+            12.9165
+          ]
+        },
+        "properties": {
+          "id": "Hub_Vellore",
+          "name": "Vellore North-West Gateway",
+          "type": "Hub",
+          "tier": 2,
+          "district": "Vellore",
+          "lat": 12.9165,
+          "lon": 79.1325
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Salem",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            78.146,
+            11.6643
+          ]
+        },
+        "properties": {
+          "id": "Hub_Salem",
+          "name": "Salem Central Transit Hub",
+          "type": "Hub",
+          "tier": 2,
+          "district": "Salem",
+          "lat": 11.6643,
+          "lon": 78.146
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Erode",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.7172,
+            11.341
+          ]
+        },
+        "properties": {
+          "id": "Hub_Erode",
+          "name": "Erode Industrial Hub",
+          "type": "Hub",
+          "tier": 2,
+          "district": "Erode",
+          "lat": 11.341,
+          "lon": 77.7172
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Tiruchirappalli",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            78.7047,
+            10.7905
+          ]
+        },
+        "properties": {
+          "id": "Hub_Tiruchirappalli",
+          "name": "Tiruchirappalli Central Junction",
+          "type": "Hub",
+          "tier": 2,
+          "district": "Tiruchirappalli",
+          "lat": 10.7905,
+          "lon": 78.7047
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Thanjavur",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            79.1378,
+            10.787
+          ]
+        },
+        "properties": {
+          "id": "Hub_Thanjavur",
+          "name": "Thanjavur Delta Hub",
+          "type": "Hub",
+          "tier": 2,
+          "district": "Thanjavur",
+          "lat": 10.787,
+          "lon": 79.1378
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Cuddalore",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            79.7714,
+            11.748
+          ]
+        },
+        "properties": {
+          "id": "Hub_Cuddalore",
+          "name": "Cuddalore Coastal Hub",
+          "type": "Hub",
+          "tier": 2,
+          "district": "Cuddalore",
+          "lat": 11.748,
+          "lon": 79.7714
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Dindigul",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.9803,
+            10.3673
+          ]
+        },
+        "properties": {
+          "id": "Hub_Dindigul",
+          "name": "Dindigul Junction Hub",
+          "type": "Hub",
+          "tier": 2,
+          "district": "Dindigul",
+          "lat": 10.3673,
+          "lon": 77.9803
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Tirunelveli",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.7567,
+            8.7139
+          ]
+        },
+        "properties": {
+          "id": "Hub_Tirunelveli",
+          "name": "Tirunelveli Deep South Hub",
+          "type": "Hub",
+          "tier": 2,
+          "district": "Tirunelveli",
+          "lat": 8.7139,
+          "lon": 77.7567
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Thoothukudi",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            78.1348,
+            8.7642
+          ]
+        },
+        "properties": {
+          "id": "Hub_Thoothukudi",
+          "name": "Thoothukudi Maritime Port Hub",
+          "type": "Hub",
+          "tier": 2,
+          "district": "Thoothukudi",
+          "lat": 8.7642,
+          "lon": 78.1348
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_01_Gummidipoondi",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            80.1295,
+            13.4072
+          ]
+        },
+        "properties": {
+          "id": "WH_01_Gummidipoondi",
+          "name": "Gummidipoondi Industrial Warehouse",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Tiruvallur",
+          "lat": 13.4072,
+          "lon": 80.1295
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_02_Sriperumbudur",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            79.9406,
+            12.9675
+          ]
+        },
+        "properties": {
+          "id": "WH_02_Sriperumbudur",
+          "name": "Sriperumbudur Auto Cluster Warehouse",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Kanchipuram",
+          "lat": 12.9675,
+          "lon": 79.9406
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_03_Arakkonam",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            79.6677,
+            13.0783
+          ]
+        },
+        "properties": {
+          "id": "WH_03_Arakkonam",
+          "name": "Arakkonam Rail-Side Warehouse",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Ranipet",
+          "lat": 13.0783,
+          "lon": 79.6677
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_04_Ranipet",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            79.333,
+            12.9272
+          ]
+        },
+        "properties": {
+          "id": "WH_04_Ranipet",
+          "name": "Ranipet Chemical Zone Warehouse",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Ranipet",
+          "lat": 12.9272,
+          "lon": 79.333
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_05_Ambur",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            78.7166,
+            12.7904
+          ]
+        },
+        "properties": {
+          "id": "WH_05_Ambur",
+          "name": "Ambur Trade Warehouse",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Tirupattur",
+          "lat": 12.7904,
+          "lon": 78.7166
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_06_Tirupattur",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            78.5678,
+            12.4958
+          ]
+        },
+        "properties": {
+          "id": "WH_06_Tirupattur",
+          "name": "Tirupattur Agricultural Warehouse",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Tirupattur",
+          "lat": 12.4958,
+          "lon": 78.5678
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_07_Attur",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            78.5982,
+            11.5978
+          ]
+        },
+        "properties": {
+          "id": "WH_07_Attur",
+          "name": "Attur Agro Depot",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Salem",
+          "lat": 11.5978,
+          "lon": 78.5982
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_08_Mettur",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.8011,
+            11.7962
+          ]
+        },
+        "properties": {
+          "id": "WH_08_Mettur",
+          "name": "Mettur Heavy Logistics Depot",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Salem",
+          "lat": 11.7962,
+          "lon": 77.8011
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_09_Namakkal",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            78.1674,
+            11.2189
+          ]
+        },
+        "properties": {
+          "id": "WH_09_Namakkal",
+          "name": "Namakkal Poultry & Transport Depot",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Namakkal",
+          "lat": 11.2189,
+          "lon": 78.1674
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_10_Bhavani",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.6828,
+            11.4489
+          ]
+        },
+        "properties": {
+          "id": "WH_10_Bhavani",
+          "name": "Bhavani River Depot",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Erode",
+          "lat": 11.4489,
+          "lon": 77.6828
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_11_Perundurai",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.5833,
+            11.2758
+          ]
+        },
+        "properties": {
+          "id": "WH_11_Perundurai",
+          "name": "Perundurai SIPCOT Warehouse",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Erode",
+          "lat": 11.2758,
+          "lon": 77.5833
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_12_Tiruppur",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.3411,
+            11.1085
+          ]
+        },
+        "properties": {
+          "id": "WH_12_Tiruppur",
+          "name": "Tiruppur Textile Hub Depot",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Tiruppur",
+          "lat": 11.1085,
+          "lon": 77.3411
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_13_Pollachi",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.0048,
+            10.6609
+          ]
+        },
+        "properties": {
+          "id": "WH_13_Pollachi",
+          "name": "Pollachi Agri Warehouse",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Coimbatore",
+          "lat": 10.6609,
+          "lon": 77.0048
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_14_Udumalaipettai",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.2472,
+            10.5828
+          ]
+        },
+        "properties": {
+          "id": "WH_14_Udumalaipettai",
+          "name": "Udumalaipettai Wind Belt Warehouse",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Tiruppur",
+          "lat": 10.5828,
+          "lon": 77.2472
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_15_Mettupalayam",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            76.9411,
+            11.2996
+          ]
+        },
+        "properties": {
+          "id": "WH_15_Mettupalayam",
+          "name": "Mettupalayam Foothill Depot",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Coimbatore",
+          "lat": 11.2996,
+          "lon": 76.9411
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_16_Manapparai",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            78.4194,
+            10.6074
+          ]
+        },
+        "properties": {
+          "id": "WH_16_Manapparai",
+          "name": "Manapparai Transit Depot",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Tiruchirappalli",
+          "lat": 10.6074,
+          "lon": 78.4194
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_17_Thuraiyur",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            78.596,
+            11.1444
+          ]
+        },
+        "properties": {
+          "id": "WH_17_Thuraiyur",
+          "name": "Thuraiyur Mineral Depot",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Tiruchirappalli",
+          "lat": 11.1444,
+          "lon": 78.596
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_18_Pudukkottai",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            78.8208,
+            10.3797
+          ]
+        },
+        "properties": {
+          "id": "WH_18_Pudukkottai",
+          "name": "Pudukkottai Heritage Warehouse",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Pudukkottai",
+          "lat": 10.3797,
+          "lon": 78.8208
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_19_Kumbakonam",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            79.3845,
+            10.9602
+          ]
+        },
+        "properties": {
+          "id": "WH_19_Kumbakonam",
+          "name": "Kumbakonam Temple Town Warehouse",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Thanjavur",
+          "lat": 10.9602,
+          "lon": 79.3845
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_20_Mayiladuthurai",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            79.6524,
+            11.1075
+          ]
+        },
+        "properties": {
+          "id": "WH_20_Mayiladuthurai",
+          "name": "Mayiladuthurai Coastal Depot",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Mayiladuthurai",
+          "lat": 11.1075,
+          "lon": 79.6524
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_21_Nagapattinam",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            79.8449,
+            10.7672
+          ]
+        },
+        "properties": {
+          "id": "WH_21_Nagapattinam",
+          "name": "Nagapattinam Port Warehouse",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Nagapattinam",
+          "lat": 10.7672,
+          "lon": 79.8449
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_22_Panruti",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            79.5537,
+            11.7745
+          ]
+        },
+        "properties": {
+          "id": "WH_22_Panruti",
+          "name": "Panruti Commercial Depot",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Cuddalore",
+          "lat": 11.7745,
+          "lon": 79.5537
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_23_Chidambaram",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            79.6936,
+            11.3992
+          ]
+        },
+        "properties": {
+          "id": "WH_23_Chidambaram",
+          "name": "Chidambaram Delta Warehouse",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Cuddalore",
+          "lat": 11.3992,
+          "lon": 79.6936
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_24_Villupuram",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            79.4861,
+            11.9401
+          ]
+        },
+        "properties": {
+          "id": "WH_24_Villupuram",
+          "name": "Villupuram Strategic Crossroad Depot",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Villupuram",
+          "lat": 11.9401,
+          "lon": 79.4861
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_25_Palani",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.5197,
+            10.4504
+          ]
+        },
+        "properties": {
+          "id": "WH_25_Palani",
+          "name": "Palani Hill Depot",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Dindigul",
+          "lat": 10.4504,
+          "lon": 77.5197
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_26_Batlagundu",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.7594,
+            10.1601
+          ]
+        },
+        "properties": {
+          "id": "WH_26_Batlagundu",
+          "name": "Batlagundu Spices Warehouse",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Dindigul",
+          "lat": 10.1601,
+          "lon": 77.7594
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_27_Virudhunagar",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.9624,
+            9.568
+          ]
+        },
+        "properties": {
+          "id": "WH_27_Virudhunagar",
+          "name": "Virudhunagar Trade Warehouse",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Virudhunagar",
+          "lat": 9.568,
+          "lon": 77.9624
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_28_Kovilpatti",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.8687,
+            9.1738
+          ]
+        },
+        "properties": {
+          "id": "WH_28_Kovilpatti",
+          "name": "Kovilpatti Industrial Depot",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Thoothukudi",
+          "lat": 9.1738,
+          "lon": 77.8687
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_29_Tenkasi",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.3152,
+            8.9594
+          ]
+        },
+        "properties": {
+          "id": "WH_29_Tenkasi",
+          "name": "Tenkasi Western Ghats Warehouse",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Tenkasi",
+          "lat": 8.9594,
+          "lon": 77.3152
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_30_Nagercoil",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.4119,
+            8.1833
+          ]
+        },
+        "properties": {
+          "id": "WH_30_Nagercoil",
+          "name": "Nagercoil Southernmost Gateway Depot",
+          "type": "Warehouse",
+          "tier": 3,
+          "district": "Kanniyakumari",
+          "lat": 8.1833,
+          "lon": 77.4119
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "HQ_Chennai__Hub_Tiruvallur",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              80.2707,
+              13.0827
+            ],
+            [
+              79.9079,
+              13.1437
+            ]
+          ]
+        },
+        "properties": {
+          "source": "HQ_Chennai",
+          "target": "Hub_Tiruvallur",
+          "distance_km": 49.84,
+          "travel_time_hr": 0.91,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "HQ_Chennai__Hub_Vellore",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              80.2707,
+              13.0827
+            ],
+            [
+              79.1325,
+              12.9165
+            ]
+          ]
+        },
+        "properties": {
+          "source": "HQ_Chennai",
+          "target": "Hub_Vellore",
+          "distance_km": 155.87,
+          "travel_time_hr": 2.83,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "HQ_Chennai__Hub_Cuddalore",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              80.2707,
+              13.0827
+            ],
+            [
+              79.7714,
+              11.748
+            ]
+          ]
+        },
+        "properties": {
+          "source": "HQ_Chennai",
+          "target": "Hub_Cuddalore",
+          "distance_km": 197.51,
+          "travel_time_hr": 3.59,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "HQ_Chennai__WH_02_Sriperumbudur",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              80.2707,
+              13.0827
+            ],
+            [
+              79.9406,
+              12.9675
+            ]
+          ]
+        },
+        "properties": {
+          "source": "HQ_Chennai",
+          "target": "WH_02_Sriperumbudur",
+          "distance_km": 47.48,
+          "travel_time_hr": 0.86,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "HQ_Coimbatore__Hub_Erode",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              76.9558,
+              11.0168
+            ],
+            [
+              77.7172,
+              11.341
+            ]
+          ]
+        },
+        "properties": {
+          "source": "HQ_Coimbatore",
+          "target": "Hub_Erode",
+          "distance_km": 113.18,
+          "travel_time_hr": 2.06,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "HQ_Coimbatore__Hub_Salem",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              76.9558,
+              11.0168
+            ],
+            [
+              78.146,
+              11.6643
+            ]
+          ]
+        },
+        "properties": {
+          "source": "HQ_Coimbatore",
+          "target": "Hub_Salem",
+          "distance_km": 185.49,
+          "travel_time_hr": 3.37,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "HQ_Coimbatore__Hub_Dindigul",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              76.9558,
+              11.0168
+            ],
+            [
+              77.9803,
+              10.3673
+            ]
+          ]
+        },
+        "properties": {
+          "source": "HQ_Coimbatore",
+          "target": "Hub_Dindigul",
+          "distance_km": 166.52,
+          "travel_time_hr": 3.03,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "HQ_Coimbatore__WH_13_Pollachi",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              76.9558,
+              11.0168
+            ],
+            [
+              77.0048,
+              10.6609
+            ]
+          ]
+        },
+        "properties": {
+          "source": "HQ_Coimbatore",
+          "target": "WH_13_Pollachi",
+          "distance_km": 49.92,
+          "travel_time_hr": 0.91,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "HQ_Coimbatore__WH_14_Udumalaipettai",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              76.9558,
+              11.0168
+            ],
+            [
+              77.2472,
+              10.5828
+            ]
+          ]
+        },
+        "properties": {
+          "source": "HQ_Coimbatore",
+          "target": "WH_14_Udumalaipettai",
+          "distance_km": 72.26,
+          "travel_time_hr": 1.31,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "HQ_Coimbatore__WH_15_Mettupalayam",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              76.9558,
+              11.0168
+            ],
+            [
+              76.9411,
+              11.2996
+            ]
+          ]
+        },
+        "properties": {
+          "source": "HQ_Coimbatore",
+          "target": "WH_15_Mettupalayam",
+          "distance_km": 39.36,
+          "travel_time_hr": 0.72,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "HQ_Coimbatore__WH_12_Tiruppur",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              76.9558,
+              11.0168
+            ],
+            [
+              77.3411,
+              11.1085
+            ]
+          ]
+        },
+        "properties": {
+          "source": "HQ_Coimbatore",
+          "target": "WH_12_Tiruppur",
+          "distance_km": 54.08,
+          "travel_time_hr": 0.98,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "HQ_Madurai__Hub_Dindigul",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.1198,
+              9.9252
+            ],
+            [
+              77.9803,
+              10.3673
+            ]
+          ]
+        },
+        "properties": {
+          "source": "HQ_Madurai",
+          "target": "Hub_Dindigul",
+          "distance_km": 64.35,
+          "travel_time_hr": 1.17,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "HQ_Madurai__Hub_Tiruchirappalli",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.1198,
+              9.9252
+            ],
+            [
+              78.7047,
+              10.7905
+            ]
+          ]
+        },
+        "properties": {
+          "source": "HQ_Madurai",
+          "target": "Hub_Tiruchirappalli",
+          "distance_km": 144.43,
+          "travel_time_hr": 2.63,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "HQ_Madurai__Hub_Tirunelveli",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.1198,
+              9.9252
+            ],
+            [
+              77.7567,
+              8.7139
+            ]
+          ]
+        },
+        "properties": {
+          "source": "HQ_Madurai",
+          "target": "Hub_Tirunelveli",
+          "distance_km": 175.57,
+          "travel_time_hr": 3.19,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "HQ_Madurai__Hub_Thoothukudi",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.1198,
+              9.9252
+            ],
+            [
+              78.1348,
+              8.7642
+            ]
+          ]
+        },
+        "properties": {
+          "source": "HQ_Madurai",
+          "target": "Hub_Thoothukudi",
+          "distance_km": 161.38,
+          "travel_time_hr": 2.93,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "HQ_Madurai__WH_27_Virudhunagar",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.1198,
+              9.9252
+            ],
+            [
+              77.9624,
+              9.568
+            ]
+          ]
+        },
+        "properties": {
+          "source": "HQ_Madurai",
+          "target": "WH_27_Virudhunagar",
+          "distance_km": 54.13,
+          "travel_time_hr": 0.98,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Tiruvallur__Hub_Vellore",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              79.9079,
+              13.1437
+            ],
+            [
+              79.1325,
+              12.9165
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Tiruvallur",
+          "target": "Hub_Vellore",
+          "distance_km": 109.65,
+          "travel_time_hr": 1.99,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Tiruvallur__WH_01_Gummidipoondi",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              79.9079,
+              13.1437
+            ],
+            [
+              80.1295,
+              13.4072
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Tiruvallur",
+          "target": "WH_01_Gummidipoondi",
+          "distance_km": 47.33,
+          "travel_time_hr": 0.86,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Tiruvallur__WH_02_Sriperumbudur",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              79.9079,
+              13.1437
+            ],
+            [
+              79.9406,
+              12.9675
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Tiruvallur",
+          "target": "WH_02_Sriperumbudur",
+          "distance_km": 24.89,
+          "travel_time_hr": 0.45,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Tiruvallur__WH_03_Arakkonam",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              79.9079,
+              13.1437
+            ],
+            [
+              79.6677,
+              13.0783
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Tiruvallur",
+          "target": "WH_03_Arakkonam",
+          "distance_km": 33.76,
+          "travel_time_hr": 0.61,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Tiruvallur__WH_24_Villupuram",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              79.9079,
+              13.1437
+            ],
+            [
+              79.4861,
+              11.9401
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Tiruvallur",
+          "target": "WH_24_Villupuram",
+          "distance_km": 176.81,
+          "travel_time_hr": 3.21,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Vellore__Hub_Salem",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              79.1325,
+              12.9165
+            ],
+            [
+              78.146,
+              11.6643
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Vellore",
+          "target": "Hub_Salem",
+          "distance_km": 219.64,
+          "travel_time_hr": 3.99,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Vellore__Hub_Cuddalore",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              79.1325,
+              12.9165
+            ],
+            [
+              79.7714,
+              11.748
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Vellore",
+          "target": "Hub_Cuddalore",
+          "distance_km": 184.13,
+          "travel_time_hr": 3.35,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Vellore__WH_04_Ranipet",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              79.1325,
+              12.9165
+            ],
+            [
+              79.333,
+              12.9272
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Vellore",
+          "target": "WH_04_Ranipet",
+          "distance_km": 27.2,
+          "travel_time_hr": 0.49,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Vellore__WH_05_Ambur",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              79.1325,
+              12.9165
+            ],
+            [
+              78.7166,
+              12.7904
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Vellore",
+          "target": "WH_05_Ambur",
+          "distance_km": 59.02,
+          "travel_time_hr": 1.07,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Vellore__WH_06_Tirupattur",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              79.1325,
+              12.9165
+            ],
+            [
+              78.5678,
+              12.4958
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Vellore",
+          "target": "WH_06_Tirupattur",
+          "distance_km": 96.34,
+          "travel_time_hr": 1.75,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Salem__Hub_Erode",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.146,
+              11.6643
+            ],
+            [
+              77.7172,
+              11.341
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Salem",
+          "target": "Hub_Erode",
+          "distance_km": 73.69,
+          "travel_time_hr": 1.34,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Salem__Hub_Tiruchirappalli",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.146,
+              11.6643
+            ],
+            [
+              78.7047,
+              10.7905
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Salem",
+          "target": "Hub_Tiruchirappalli",
+          "distance_km": 143.36,
+          "travel_time_hr": 2.61,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Salem__Hub_Dindigul",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.146,
+              11.6643
+            ],
+            [
+              77.9803,
+              10.3673
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Salem",
+          "target": "Hub_Dindigul",
+          "distance_km": 181.69,
+          "travel_time_hr": 3.3,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Salem__WH_07_Attur",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.146,
+              11.6643
+            ],
+            [
+              78.5982,
+              11.5978
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Salem",
+          "target": "WH_07_Attur",
+          "distance_km": 62.25,
+          "travel_time_hr": 1.13,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Salem__WH_08_Mettur",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.146,
+              11.6643
+            ],
+            [
+              77.8011,
+              11.7962
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Salem",
+          "target": "WH_08_Mettur",
+          "distance_km": 50.39,
+          "travel_time_hr": 0.92,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Salem__WH_09_Namakkal",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.146,
+              11.6643
+            ],
+            [
+              78.1674,
+              11.2189
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Salem",
+          "target": "WH_09_Namakkal",
+          "distance_km": 61.98,
+          "travel_time_hr": 1.13,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Erode__WH_10_Bhavani",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              77.7172,
+              11.341
+            ],
+            [
+              77.6828,
+              11.4489
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Erode",
+          "target": "WH_10_Bhavani",
+          "distance_km": 15.71,
+          "travel_time_hr": 0.29,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Erode__WH_11_Perundurai",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              77.7172,
+              11.341
+            ],
+            [
+              77.5833,
+              11.2758
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Erode",
+          "target": "WH_11_Perundurai",
+          "distance_km": 20.38,
+          "travel_time_hr": 0.37,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Erode__WH_12_Tiruppur",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              77.7172,
+              11.341
+            ],
+            [
+              77.3411,
+              11.1085
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Erode",
+          "target": "WH_12_Tiruppur",
+          "distance_km": 60.61,
+          "travel_time_hr": 1.1,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Tiruchirappalli__Hub_Thanjavur",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.7047,
+              10.7905
+            ],
+            [
+              79.1378,
+              10.787
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Tiruchirappalli",
+          "target": "Hub_Thanjavur",
+          "distance_km": 59.14,
+          "travel_time_hr": 1.08,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Tiruchirappalli__Hub_Dindigul",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.7047,
+              10.7905
+            ],
+            [
+              77.9803,
+              10.3673
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Tiruchirappalli",
+          "target": "Hub_Dindigul",
+          "distance_km": 115.14,
+          "travel_time_hr": 2.09,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Tiruchirappalli__Hub_Thoothukudi",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.7047,
+              10.7905
+            ],
+            [
+              78.1348,
+              8.7642
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Tiruchirappalli",
+          "target": "Hub_Thoothukudi",
+          "distance_km": 292.26,
+          "travel_time_hr": 5.31,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Tiruchirappalli__WH_16_Manapparai",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.7047,
+              10.7905
+            ],
+            [
+              78.4194,
+              10.6074
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Tiruchirappalli",
+          "target": "WH_16_Manapparai",
+          "distance_km": 46.54,
+          "travel_time_hr": 0.85,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Tiruchirappalli__WH_17_Thuraiyur",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.7047,
+              10.7905
+            ],
+            [
+              78.596,
+              11.1444
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Tiruchirappalli",
+          "target": "WH_17_Thuraiyur",
+          "distance_km": 51.38,
+          "travel_time_hr": 0.93,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Tiruchirappalli__WH_18_Pudukkottai",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.7047,
+              10.7905
+            ],
+            [
+              78.8208,
+              10.3797
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Tiruchirappalli",
+          "target": "WH_18_Pudukkottai",
+          "distance_km": 59.26,
+          "travel_time_hr": 1.08,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Tiruchirappalli__WH_09_Namakkal",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.7047,
+              10.7905
+            ],
+            [
+              78.1674,
+              11.2189
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Tiruchirappalli",
+          "target": "WH_09_Namakkal",
+          "distance_km": 94.44,
+          "travel_time_hr": 1.72,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Thanjavur__Hub_Cuddalore",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              79.1378,
+              10.787
+            ],
+            [
+              79.7714,
+              11.748
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Thanjavur",
+          "target": "Hub_Cuddalore",
+          "distance_km": 159.06,
+          "travel_time_hr": 2.89,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Thanjavur__WH_19_Kumbakonam",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              79.1378,
+              10.787
+            ],
+            [
+              79.3845,
+              10.9602
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Thanjavur",
+          "target": "WH_19_Kumbakonam",
+          "distance_km": 41.39,
+          "travel_time_hr": 0.75,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Thanjavur__WH_20_Mayiladuthurai",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              79.1378,
+              10.787
+            ],
+            [
+              79.6524,
+              11.1075
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Thanjavur",
+          "target": "WH_20_Mayiladuthurai",
+          "distance_km": 83.16,
+          "travel_time_hr": 1.51,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Thanjavur__WH_21_Nagapattinam",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              79.1378,
+              10.787
+            ],
+            [
+              79.8449,
+              10.7672
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Thanjavur",
+          "target": "WH_21_Nagapattinam",
+          "distance_km": 96.59,
+          "travel_time_hr": 1.76,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Thanjavur__WH_18_Pudukkottai",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              79.1378,
+              10.787
+            ],
+            [
+              78.8208,
+              10.3797
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Thanjavur",
+          "target": "WH_18_Pudukkottai",
+          "distance_km": 71.28,
+          "travel_time_hr": 1.3,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Cuddalore__WH_22_Panruti",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              79.7714,
+              11.748
+            ],
+            [
+              79.5537,
+              11.7745
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Cuddalore",
+          "target": "WH_22_Panruti",
+          "distance_km": 29.85,
+          "travel_time_hr": 0.54,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Cuddalore__WH_23_Chidambaram",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              79.7714,
+              11.748
+            ],
+            [
+              79.6936,
+              11.3992
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Cuddalore",
+          "target": "WH_23_Chidambaram",
+          "distance_km": 49.62,
+          "travel_time_hr": 0.9,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Cuddalore__WH_24_Villupuram",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              79.7714,
+              11.748
+            ],
+            [
+              79.4861,
+              11.9401
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Cuddalore",
+          "target": "WH_24_Villupuram",
+          "distance_km": 47.11,
+          "travel_time_hr": 0.86,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Dindigul__WH_25_Palani",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              77.9803,
+              10.3673
+            ],
+            [
+              77.5197,
+              10.4504
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Dindigul",
+          "target": "WH_25_Palani",
+          "distance_km": 64.02,
+          "travel_time_hr": 1.16,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Dindigul__WH_26_Batlagundu",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              77.9803,
+              10.3673
+            ],
+            [
+              77.7594,
+              10.1601
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Dindigul",
+          "target": "WH_26_Batlagundu",
+          "distance_km": 41.74,
+          "travel_time_hr": 0.76,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Dindigul__WH_27_Virudhunagar",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              77.9803,
+              10.3673
+            ],
+            [
+              77.9624,
+              9.568
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Dindigul",
+          "target": "WH_27_Virudhunagar",
+          "distance_km": 111.12,
+          "travel_time_hr": 2.02,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Tirunelveli__Hub_Thoothukudi",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              77.7567,
+              8.7139
+            ],
+            [
+              78.1348,
+              8.7642
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Tirunelveli",
+          "target": "Hub_Thoothukudi",
+          "distance_km": 52.41,
+          "travel_time_hr": 0.95,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Tirunelveli__WH_28_Kovilpatti",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              77.7567,
+              8.7139
+            ],
+            [
+              77.8687,
+              9.1738
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Tirunelveli",
+          "target": "WH_28_Kovilpatti",
+          "distance_km": 65.75,
+          "travel_time_hr": 1.2,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Tirunelveli__WH_29_Tenkasi",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              77.7567,
+              8.7139
+            ],
+            [
+              77.3152,
+              8.9594
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Tirunelveli",
+          "target": "WH_29_Tenkasi",
+          "distance_km": 69.58,
+          "travel_time_hr": 1.27,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Tirunelveli__WH_30_Nagercoil",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              77.7567,
+              8.7139
+            ],
+            [
+              77.4119,
+              8.1833
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Tirunelveli",
+          "target": "WH_30_Nagercoil",
+          "distance_km": 87.67,
+          "travel_time_hr": 1.59,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Thoothukudi__WH_28_Kovilpatti",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.1348,
+              8.7642
+            ],
+            [
+              77.8687,
+              9.1738
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Thoothukudi",
+          "target": "WH_28_Kovilpatti",
+          "distance_km": 67.65,
+          "travel_time_hr": 1.23,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "Hub_Thoothukudi__WH_30_Nagercoil",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.1348,
+              8.7642
+            ],
+            [
+              77.4119,
+              8.1833
+            ]
+          ]
+        },
+        "properties": {
+          "source": "Hub_Thoothukudi",
+          "target": "WH_30_Nagercoil",
+          "distance_km": 128.05,
+          "travel_time_hr": 2.33,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_03_Arakkonam__WH_04_Ranipet",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              79.6677,
+              13.0783
+            ],
+            [
+              79.333,
+              12.9272
+            ]
+          ]
+        },
+        "properties": {
+          "source": "WH_03_Arakkonam",
+          "target": "WH_04_Ranipet",
+          "distance_km": 49.96,
+          "travel_time_hr": 0.91,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_06_Tirupattur__WH_07_Attur",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              78.5678,
+              12.4958
+            ],
+            [
+              78.5982,
+              11.5978
+            ]
+          ]
+        },
+        "properties": {
+          "source": "WH_06_Tirupattur",
+          "target": "WH_07_Attur",
+          "distance_km": 124.88,
+          "travel_time_hr": 2.27,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_08_Mettur__WH_10_Bhavani",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              77.8011,
+              11.7962
+            ],
+            [
+              77.6828,
+              11.4489
+            ]
+          ]
+        },
+        "properties": {
+          "source": "WH_08_Mettur",
+          "target": "WH_10_Bhavani",
+          "distance_km": 50.89,
+          "travel_time_hr": 0.93,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_14_Udumalaipettai__WH_25_Palani",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              77.2472,
+              10.5828
+            ],
+            [
+              77.5197,
+              10.4504
+            ]
+          ]
+        },
+        "properties": {
+          "source": "WH_14_Udumalaipettai",
+          "target": "WH_25_Palani",
+          "distance_km": 41.54,
+          "travel_time_hr": 0.76,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "WH_20_Mayiladuthurai__WH_23_Chidambaram",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              79.6524,
+              11.1075
+            ],
+            [
+              79.6936,
+              11.3992
+            ]
+          ]
+        },
+        "properties": {
+          "source": "WH_20_Mayiladuthurai",
+          "target": "WH_23_Chidambaram",
+          "distance_km": 40.93,
+          "travel_time_hr": 0.74,
+          "on_time_prob": 0.96,
+          "disruption_prob": 0.04
+        }
+      }
+    ]
+  }
+}

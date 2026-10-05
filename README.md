@@ -176,7 +176,115 @@ The objective of ProbRoute is to develop a probabilistic logistics decision-supp
 
 ---
 
-## Repository Structure
+## Detailed Layer Specifications
+
+### 1. Data Processing Layer
+
+The data processing layer ingests delivery metrics, sanitizes operational observations, and structures them into discrete state spaces required for Bayesian conditional probability modeling:
+
+- **Data Cleaning**: Imputation of missing weather, traffic, and shipment density observations.
+- **Feature Engineering**: Computation of geospatial road distances, node transit capacities, and speed ratios.
+- **Variable Discretization**: Continuous environmental variables are mapped into discrete states:
+  - *Weather*: Clear, Rainy, Stormy
+  - *Traffic Density*: Low, Medium, Jammed
+  - *Vehicle Condition*: Good, Degraded
+  - *Delivery Load*: Normal, High
+- **Delivery Outcome Formulation**: Classification of delivery outcomes into *On-Time*, *Minor Delay*, and *Severe Delay*.
+
+---
+
+### 2. Probabilistic Modeling Layer
+
+This layer models probabilistic dependencies between operational hazards and logistics network performance:
+
+- **Bayesian Network (BN)**: Represents conditional dependencies between root hazard causes (weather, traffic, vehicle state) and intermediate node-level delay risks.
+- **Two-Time-Slice Dynamic Bayesian Network (DBN)**: Extends static inference to temporal dynamics ($t_0 \to t_1$), capturing disruption persistence and post-disruption recovery across consecutive operational periods.
+- **Path-Centric Correlated Uncertainty**: Partitions network edges into macro corridors (following PACE / SPOTAR principles), avoiding naive independent-edge assumptions and capturing correlated spatial disruptions.
+- **Continuous Fat-Tailed Delays**: Incorporates Jones & Faddy Skew-t and Skew-Normal distributions to accurately reflect asymmetric delay distributions observed during extreme weather events.
+
+---
+
+### 3. Probabilistic Inference Layer
+
+When external operational conditions change or localized disruption reports arrive:
+
+- **Evidence Ingestion**: Dynamic assignment of observed evidence $\mathbf{E} = \{X_1 = e_1, X_2 = e_2, \dots\}$.
+- **Belief Propagation**: Exact marginal updating via **Variable Elimination** computes posterior probabilities:
+  $$P(\text{Delay} \mid \mathbf{E}) \quad \text{and} \quad P(\text{On-Time} \mid \mathbf{E})$$
+- **Dynamic State Transition**: DBN forward-filtering projects future disruption probabilities across time horizons.
+
+---
+
+### 4. Physical Logistics Network Layer
+
+ProbRoute models multi-echelon supply chain infrastructures across two concrete topologies:
+
+#### A. 20-Node Hierarchical Physical Grid (Coursework Pipeline)
+- **1 Central Warehouse**: Primary shipment origination node.
+- **18 Multi-Tier Hubs**: Regional hubs (RH1–RH3), transit hubs (TH1–TH9), and local distribution hubs (LH1–LH3).
+- **1 Delivery Zone**: Terminal customer delivery region.
+- **Bidirectional Arteries**: Inter-hub cross-links representing alternative rerouting avenues.
+
+#### B. 43-Node Real-World Tamil Nadu Hierarchy (Extended Spatial Engine)
+- **3 Strategic Headquarters**: Chennai Central HQ, Coimbatore Western HQ, Madurai Southern HQ.
+- **10 Regional Hubs**: Key transit intersections including Tiruchirappalli, Salem, Vellore, Tirunelveli, Erode, and Thoothukudi Maritime Port Hub.
+- **30 District Warehouses**: Granular distribution nodes covering major industrial and agricultural centers.
+- **128 Directed Edges**: Real-world highway topology mapped across 8 macro arterial corridors (NH44, NH48, NH32, NH544, etc.).
+
+---
+
+### 5. Risk Propagation Layer
+
+Inferred delay probabilities from the probabilistic layer are mapped onto the physical topology:
+
+- **Node Risk Scoring**: Each hub is evaluated for congestion vulnerability based on incoming traffic beliefs and storage capacities.
+- **Edge Hazard Weighting**: Transportation connections inherit hazard exposures from their respective macro corridors and localized environmental cells.
+- **Vulnerability Diagnostics**: Identifies critical single points of failure where localized disruptions risk cascading across the broader logistics network.
+
+---
+
+### 6. Route Resilience & Decision Layer
+
+Rather than relying on static Dijkstra shortest paths, ProbRoute solves the **Reliable Shortest Path Problem (RSPP)**:
+
+- **RSPP-A\* Heuristic Search**: Multi-criteria search simultaneously optimizing for:
+  1. Expected Travel Time ($\mathbb{E}[T]$)
+  2. Disruption Exposure ($R_{\text{exposure}}$)
+  3. $\alpha$-Reliability ($P(T \le T_{\text{budget}}) \ge \alpha$)
+- **First-Order Stochastic Dominance (FSD) Pruning**: Dynamically prunes non-Pareto candidate paths, eliminating high-risk sub-paths early and maintaining low search latencies.
+- **Pareto Recommendation**: Presents trade-off alternatives and highlights the single most resilient route under prevailing evidence.
+
+---
+
+### 7. Resilience Metric Scorecard
+
+Evaluates routes using the 5 core resilience dimensions defined by **Jiang et al. (2020)**:
+
+| Resilience Dimension | Operational Definition | System Metric |
+|---|---|---|
+| **1. Absorptive Capacity** | Ability to withstand shocks without operational failure | Probability of on-time delivery despite active disruptions |
+| **2. Restorative Capacity** | Speed of returning to nominal operational capacity | DBN recovery rate across consecutive time slices |
+| **3. Adaptive Capacity** | Flexibility to reroute around degraded nodes | Availability of alternative Pareto-optimal paths |
+| **4. Redundancy** | Structural diversity of alternative routes | Number of independent non-overlapping corridor alternatives |
+| **5. Rapidity** | Timeliness of route adaptation and dispatch | Algorithmic execution latency of rerouting decisions |
+
+---
+
+### 8. Benchmark Suite & Performance Verification
+
+The system was formally verified on the 43-node Tamil Nadu network to ensure real-time interactive decision support:
+
+| Verification Task | Target Specification | Measured Result | Evaluation |
+|---|---|---|---|
+| **pgmpy DBN Inference Latency** | $< 1500.0\text{ ms}$ (10 frames) | **$22.61\text{ ms}$** ($2.05\text{ ms/frame}$) | **PASS** |
+| **Vectorized NumPy Fallback Speed** | High-fps UI timeline scrubbing | **$0.230\text{ ms}$** ($105.1\times$ speedup) | **PASS** |
+| **RSPP-A\* Multi-Criteria Latency** | $< 300.0\text{ ms}$ (HQ_Chennai $\to$ WH_30) | **$0.65\text{ ms}$** | **PASS** |
+| **FSD Dominance Pruning Efficiency** | High search space reduction | **$65.7\%$** candidates pruned | **PASS** |
+| **Geospatial Graph Integrity** | 43 nodes, strong connectivity | $100\%$ reachability, $0$ isolated nodes | **PASS** |
+
+---
+
+# Repository Structure
 
 ```text
 .
@@ -216,38 +324,9 @@ The objective of ProbRoute is to develop a probabilistic logistics decision-supp
 
 ---
 
-## Theoretical & Algorithmic Foundations
+# Execution & Usage Guide
 
-1. **Path-Centric Correlated Uncertainty**: Macro corridor partitioning modeling correlated disruptions (adverse weather, regional strikes, expressway congestion) rather than assuming edge-independence.
-2. **Asymmetric Delay Distributions**: Skew-Normal and Skew-t distributions capturing fat-tailed travel delays rather than naive Gaussian assumptions.
-3. **Dynamic Bayesian Network (DBN)**: Two-time-slice DBN transitioning from baseline $t_0$ to disrupted state $t_1$, updating marginal beliefs via Variable Elimination.
-4. **Reliable Shortest Path Problem (RSPP-A*)**: Hand-crafted multi-criteria search incorporating First-Order Stochastic Dominance (FSD) dominance pruning for $\alpha$-reliable path ranking.
-5. **Resilience Scorecard (Jiang et al. 2020)**: Quantifies five core dimensions:
-   - Absorptive Capacity
-   - Restorative Capacity
-   - Adaptive Capacity
-   - Redundancy
-   - Rapidity
-
----
-
-## Benchmark Suite Verification (Phase 1)
-
-The Phase 1 verification suite confirms strict compliance with low-latency interactive simulation constraints:
-
-| Task / Metric | Target Criterion | Measured Benchmark | Status |
-|---|---|---|---|
-| **pgmpy DBN Inference Latency** | $< 1500.0\text{ ms}$ (10 frames) | **$22.6\text{ ms}$** ($2.05\text{ ms/frame}$) | **PASS** |
-| **Vectorized NumPy Fallback Speed** | High-fps UI scrubbing | **$0.23\text{ ms}$** ($105\times$ speedup) | **PASS** |
-| **RSPP-A\* Latency (HQ $\to$ WH)** | $< 300.0\text{ ms}$ | **$0.65\text{ ms}$** | **PASS** |
-| **FSD Dominance Pruning Efficiency** | High search efficiency | **$65.7\%$** paths pruned | **PASS** |
-| **Tamil Nadu Geospatial Graph** | 43 nodes, strong connectivity | $100\%$ reachability, $0$ isolated nodes | **PASS** |
-
----
-
-## Getting Started
-
-### 1. Installation
+### 1. Prerequisites & Installation
 
 Clone the repository and install dependencies:
 
@@ -257,32 +336,34 @@ cd Resilient-Route-Decision-Support-in-Uncertain-Logistics-Network
 pip install -r requirements.txt
 ```
 
-### 2. Run the Streamlit Dashboard (PRDs 1–7)
+### 2. Launch the Streamlit Interactive Dashboard
 
-Launch the interactive 20-node logistics decision support dashboard:
+Run the primary decision-support dashboard (PRDs 1–7):
 
 ```bash
 streamlit run app.py
 ```
 
-### 3. Run the Phase 2 Tamil Nadu Backend Service (PRDs 8–10)
+### 3. Launch the Phase 2 FastAPI REST Service
 
-Launch the FastAPI REST API:
+Start the backend server for spatial hazard simulation and GeoJSON delivery (PRDs 8–10):
 
 ```bash
 cd phase2_tamil_nadu_engine
 uvicorn main:app --reload --port 8000
 ```
-Interactive API documentation is accessible at `http://localhost:8000/docs`.
+Interactive Swagger API documentation is available at `http://localhost:8000/docs`.
 
-### 4. Run the Benchmarks & Tests
+### 4. Run Test & Benchmark Suites
 
-Run the unit tests:
+Run automated unit and integration tests:
+
 ```bash
 python -m pytest
 ```
 
-Run the Phase 1 benchmark verification suite:
+Execute the Phase 1 benchmark verification suite:
+
 ```bash
 python phase2_tamil_nadu_engine/phase1_benchmark.py
 ```

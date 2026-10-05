@@ -1,21 +1,23 @@
 import React from 'react';
-import type { TimelineFrame, CandidateRoute } from '../types/network';
-import { ShieldCheck, Navigation, AlertOctagon } from 'lucide-react';
+import type { TimelineFrame, CandidateRoute, EngineTimelineResult } from '../types/network';
+import { ShieldCheck, Navigation, AlertOctagon, Activity } from 'lucide-react';
 
 interface ResilienceRoutePanelProps {
+  timelineResult: EngineTimelineResult | null;
   currentFrame: TimelineFrame | null;
   onSelectRoute?: (route: CandidateRoute) => void;
   selectedRouteNodes?: string[];
 }
 
 export const ResilienceRoutePanel: React.FC<ResilienceRoutePanelProps> = ({
+  timelineResult,
   currentFrame,
   onSelectRoute,
   selectedRouteNodes = [],
 }) => {
-  const scorecard = currentFrame?.resilience_scorecard;
-  const recommendedRoute = currentFrame?.recommended_route;
-  const candidateRoutes = currentFrame?.candidate_routes || [];
+  const scorecard = timelineResult?.resilience_scorecard;
+  const candidateRoutes = timelineResult?.primary_rerouted_solutions || [];
+  const recommendedRoute = candidateRoutes[0] || null;
 
   return (
     <div className="flex flex-col gap-4 bg-slate-900/90 backdrop-blur-md p-4 rounded-xl border border-slate-800 text-slate-200 overflow-y-auto max-h-[calc(100vh-140px)]">
@@ -45,7 +47,7 @@ export const ResilienceRoutePanel: React.FC<ResilienceRoutePanelProps> = ({
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-400">On-Time Reliability (&alpha;):</span>
               <span className="font-mono text-xs font-semibold text-emerald-400">
-                {(recommendedRoute.reliability_alpha * 100).toFixed(1)}%
+                {(recommendedRoute.on_time_reliability_alpha * 100).toFixed(1)}%
               </span>
             </div>
 
@@ -58,12 +60,14 @@ export const ResilienceRoutePanel: React.FC<ResilienceRoutePanelProps> = ({
 
             {/* Path Breadcrumbs */}
             <div className="mt-1 pt-2 border-t border-slate-800 text-xs">
-              <div className="text-[11px] text-slate-400 mb-1">Route Path ({recommendedRoute.hops} hops):</div>
+              <div className="text-[11px] text-slate-400 mb-1">
+                Route Path ({recommendedRoute.hops} hops):
+              </div>
               <div className="font-mono text-[11px] text-slate-300 bg-slate-900/80 p-2 rounded border border-slate-800/60 break-words leading-relaxed">
-                {recommendedRoute.path.map((node, i) => (
+                {recommendedRoute.path_nodes.map((node, i) => (
                   <span key={node}>
                     <span className="text-sky-300 font-medium">{node}</span>
-                    {i < recommendedRoute.path.length - 1 && (
+                    {i < recommendedRoute.path_nodes.length - 1 && (
                       <span className="text-slate-600 mx-1">&rarr;</span>
                     )}
                   </span>
@@ -73,7 +77,7 @@ export const ResilienceRoutePanel: React.FC<ResilienceRoutePanelProps> = ({
           </div>
         ) : (
           <div className="text-xs text-slate-500 italic p-3 text-center bg-slate-950/40 rounded-lg border border-slate-800/40">
-            No route calculated. Place a hazard or select nodes to evaluate paths.
+            No route calculated. Click "Run Simulation" to solve RSPP-A*.
           </div>
         )}
       </div>
@@ -89,21 +93,21 @@ export const ResilienceRoutePanel: React.FC<ResilienceRoutePanelProps> = ({
 
         {scorecard ? (
           <div className="flex flex-col gap-2.5 text-xs">
-            {/* Overall Score */}
+            {/* Overall Composite Score */}
             <div className="bg-slate-950/60 p-2 rounded-lg border border-slate-800/60 flex items-center justify-between">
-              <span className="text-slate-300 font-medium">Overall Network Resilience:</span>
+              <span className="text-slate-300 font-medium">Composite Resilience Index:</span>
               <span className="font-mono text-base font-bold text-emerald-400">
-                {(scorecard.overall_resilience * 100).toFixed(1)}%
+                {(scorecard.overall_resilience_index * 100).toFixed(1)}%
               </span>
             </div>
 
-            {/* 5 Core Dimensions */}
+            {/* 5 Core Jiang et al. Capabilities */}
             {[
-              { label: 'Absorptive Capacity', val: scorecard.absorptive_capacity, color: 'bg-emerald-500' },
-              { label: 'Restorative Capacity', val: scorecard.restorative_capacity, color: 'bg-blue-500' },
-              { label: 'Adaptive Capacity', val: scorecard.adaptive_capacity, color: 'bg-purple-500' },
-              { label: 'Redundancy Metric', val: scorecard.redundancy_metric, color: 'bg-amber-500' },
-              { label: 'Rapidity Metric', val: scorecard.rapidity_metric, color: 'bg-cyan-500' },
+              { label: 'Rapid Response (Shock Absorption)', val: scorecard.rapid_response, color: 'bg-emerald-500' },
+              { label: 'Sustained Resistance (Delay Avoidance)', val: scorecard.sustained_resistance, color: 'bg-blue-500' },
+              { label: 'Continuous Running (Pareto Stability)', val: scorecard.continuous_running, color: 'bg-purple-500' },
+              { label: 'Rapid Convergence (Post-Shock Recovery)', val: scorecard.rapid_convergence, color: 'bg-amber-500' },
+              { label: 'Dynamic Evolution (Terminal Reliability)', val: scorecard.dynamic_evolution, color: 'bg-cyan-500' },
             ].map((metric) => (
               <div key={metric.label} className="flex flex-col gap-1">
                 <div className="flex justify-between text-[11px] text-slate-400">
@@ -113,28 +117,30 @@ export const ResilienceRoutePanel: React.FC<ResilienceRoutePanelProps> = ({
                 <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
                   <div
                     className={`h-full ${metric.color} transition-all duration-300 rounded-full`}
-                    style={{ width: `${Math.min(100, metric.val * 100)}%` }}
+                    style={{ width: `${Math.min(100, Math.max(0, metric.val * 100))}%` }}
                   />
                 </div>
               </div>
             ))}
 
-            {/* Vulnerable Hubs diagnostic */}
-            {scorecard.vulnerable_hubs && scorecard.vulnerable_hubs.length > 0 && (
-              <div className="mt-2 pt-2 border-t border-slate-800 flex flex-col gap-1">
+            {/* Vulnerable Hub & High-Risk Edge Diagnostic */}
+            {timelineResult.vulnerable_hub && (
+              <div className="mt-2 pt-2 border-t border-slate-800 flex flex-col gap-1.5">
                 <div className="flex items-center gap-1.5 text-rose-400 text-[11px] font-semibold uppercase">
                   <AlertOctagon className="w-3.5 h-3.5" />
-                  <span>Vulnerable Hubs (Bottlenecks):</span>
+                  <span>Bottleneck Diagnostics:</span>
                 </div>
-                <div className="flex flex-wrap gap-1">
-                  {scorecard.vulnerable_hubs.map((hub) => (
-                    <span
-                      key={hub}
-                      className="text-[11px] px-2 py-0.5 rounded bg-rose-950/80 text-rose-300 border border-rose-800/60 font-mono"
-                    >
-                      {hub}
-                    </span>
-                  ))}
+                <div className="flex flex-col gap-1 text-[11px]">
+                  <div className="flex justify-between bg-slate-950/60 p-1.5 rounded border border-slate-800">
+                    <span className="text-slate-400">Vulnerable Hub:</span>
+                    <span className="font-mono text-rose-300 font-semibold">{timelineResult.vulnerable_hub}</span>
+                  </div>
+                  {timelineResult.high_risk_edge && (
+                    <div className="flex justify-between bg-slate-950/60 p-1.5 rounded border border-slate-800">
+                      <span className="text-slate-400">Critical Link:</span>
+                      <span className="font-mono text-amber-300 font-semibold">{timelineResult.high_risk_edge}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -146,7 +152,7 @@ export const ResilienceRoutePanel: React.FC<ResilienceRoutePanelProps> = ({
         )}
       </div>
 
-      {/* 3. Candidate Routes List */}
+      {/* 3. Candidate Pareto Routes List */}
       {candidateRoutes.length > 1 && (
         <div className="flex flex-col gap-2 pt-2 border-t border-slate-800 text-xs">
           <div className="font-semibold text-slate-300 text-[11px] uppercase tracking-wide">
@@ -154,7 +160,7 @@ export const ResilienceRoutePanel: React.FC<ResilienceRoutePanelProps> = ({
           </div>
           <div className="flex flex-col gap-1.5">
             {candidateRoutes.map((cr, idx) => {
-              const isSelected = selectedRouteNodes.join(',') === cr.path.join(',');
+              const isSelected = selectedRouteNodes.join(',') === cr.path_nodes.join(',');
               return (
                 <button
                   key={idx}
@@ -171,12 +177,30 @@ export const ResilienceRoutePanel: React.FC<ResilienceRoutePanelProps> = ({
                     <span className="text-sky-300">{cr.travel_time_hr.toFixed(1)}h</span>
                   </div>
                   <div className="flex justify-between text-[10px] text-slate-500 mt-0.5">
-                    <span>Rel: {(cr.reliability_alpha * 100).toFixed(0)}%</span>
+                    <span>Rel: {(cr.on_time_reliability_alpha * 100).toFixed(0)}%</span>
                     <span>Risk: {(cr.disruption_prob * 100).toFixed(0)}%</span>
                   </div>
                 </button>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* 4. Cascade Effects in current hour */}
+      {currentFrame?.cascade_effects && currentFrame.cascade_effects.length > 0 && (
+        <div className="flex flex-col gap-1.5 pt-2 border-t border-slate-800 text-xs">
+          <div className="flex items-center gap-1 text-amber-400 font-semibold text-[11px] uppercase">
+            <Activity className="w-3.5 h-3.5" />
+            <span>Active Cascade Effects (Hour {currentFrame.time_hour}):</span>
+          </div>
+          <div className="flex flex-col gap-1">
+            {currentFrame.cascade_effects.slice(0, 3).map((eff, i) => (
+              <div key={i} className="text-[11px] bg-slate-950/60 p-1.5 rounded border border-slate-800/70">
+                <span className="font-semibold text-slate-200">{eff.node}:</span>{' '}
+                <span className="text-slate-400">{eff.impact}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}

@@ -11,13 +11,14 @@ export const App: React.FC = () => {
   const [backendStatus, setBackendStatus] = useState<'connected' | 'disconnected' | 'connecting'>('connecting');
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
 
-  // Active Hazard State
+  // Active Hazard State conforming to FastAPI HazardInput
   const [hazard, setHazard] = useState<HazardInput>({
-    hazard_type: 'cyclone',
-    epicenter_lat: 11.9401, // Near Cuddalore / East Coast by default
-    epicenter_lon: 79.7719,
+    hazard_type: 'flood',
+    latitude: 11.9401, // Near Cuddalore / East Coast by default
+    longitude: 79.7719,
     radius_km: 45,
-    severity: 0.75,
+    intensity: 0.75,
+    time_horizon: 10,
   });
 
   // Timeline Simulation State
@@ -73,8 +74,8 @@ export const App: React.FC = () => {
   const handleMapClick = (lat: number, lon: number) => {
     setHazard((prev) => ({
       ...prev,
-      epicenter_lat: lat,
-      epicenter_lon: lon,
+      latitude: Number(lat.toFixed(4)),
+      longitude: Number(lon.toFixed(4)),
     }));
   };
 
@@ -86,12 +87,12 @@ export const App: React.FC = () => {
       setTimelineResult(result);
       setCurrentFrameIndex(0);
       setIsPlaying(true);
-      if (result.frames[0]?.recommended_route) {
-        setSelectedRoute(result.frames[0].recommended_route);
+      if (result.primary_rerouted_solutions && result.primary_rerouted_solutions.length > 0) {
+        setSelectedRoute(result.primary_rerouted_solutions[0]);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Simulation error:', err);
-      alert('Simulation error. Please verify the FastAPI backend is running on port 8000.');
+      alert(`Simulation error: ${err.message || 'Check console'}`);
     } finally {
       setIsLoading(false);
     }
@@ -110,7 +111,9 @@ export const App: React.FC = () => {
 
   // Active highlighted route path nodes
   const highlightedRouteNodes =
-    selectedRoute?.path || currentFrame?.recommended_route?.path || [];
+    selectedRoute?.path_nodes ||
+    timelineResult?.primary_rerouted_solutions?.[0]?.path_nodes ||
+    [];
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-950 font-sans">
@@ -128,7 +131,7 @@ export const App: React.FC = () => {
             activeHazard={hazard}
             onMapClick={handleMapClick}
             highlightedRouteNodes={highlightedRouteNodes}
-            nodeExposures={currentFrame?.node_exposures}
+            nodeStates={currentFrame?.node_states}
           />
 
           {backendStatus === 'disconnected' && (
@@ -177,6 +180,7 @@ export const App: React.FC = () => {
 
           {/* RSPP-A* Route Recommendation & Resilience Scorecard */}
           <ResilienceRoutePanel
+            timelineResult={timelineResult}
             currentFrame={currentFrame}
             onSelectRoute={setSelectedRoute}
             selectedRouteNodes={highlightedRouteNodes}

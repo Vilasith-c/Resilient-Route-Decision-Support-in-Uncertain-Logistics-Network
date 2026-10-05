@@ -11,6 +11,7 @@ interface NetworkMapProps {
   onMapClick?: (lat: number, lon: number) => void;
   highlightedRouteNodes?: string[];
   nodeExposures?: Record<string, number>;
+  nodeStates?: Record<string, string>;
 }
 
 // Center of Tamil Nadu (approx Trichy coordinates)
@@ -36,6 +37,7 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
   onMapClick,
   highlightedRouteNodes = [],
   nodeExposures = {},
+  nodeStates = {},
 }) => {
   // Separate points and lines from GeoJSON
   const { nodeFeatures, lineFeatures } = useMemo(() => {
@@ -55,12 +57,12 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
     return { nodeFeatures: nodes, lineFeatures: lines };
   }, [network]);
 
-  // Color generator based on node type and hazard exposure
-  const getNodeColor = (type: string, exposure: number = 0, isHighlighted: boolean = false) => {
+  // Color generator based on node type, hazard exposure, and DBN state
+  const getNodeColor = (type: string, exposure: number = 0, state?: string, isHighlighted: boolean = false) => {
     if (isHighlighted) return '#38bdf8'; // Bright cyan for active route
-    if (exposure > 0.6) return '#ef4444'; // Red (Severe hazard exposure)
-    if (exposure > 0.3) return '#f97316'; // Orange (Moderate exposure)
-    if (exposure > 0.05) return '#eab308'; // Yellow (Light exposure)
+    if (state === 'High' || exposure > 0.6) return '#ef4444'; // Red (Severe hazard exposure)
+    if (state === 'Medium' || exposure > 0.25) return '#f97316'; // Orange (Moderate exposure)
+    if (state === 'Low' || exposure > 0.05) return '#eab308'; // Yellow (Light exposure)
 
     switch (type) {
       case 'HQ':
@@ -170,7 +172,7 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
         {/* 2. Active Hazard Circle (if placed) */}
         {activeHazard && (
           <Circle
-            center={[activeHazard.epicenter_lat, activeHazard.epicenter_lon]}
+            center={[activeHazard.latitude, activeHazard.longitude]}
             radius={activeHazard.radius_km * 1000}
             pathOptions={{
               color: '#ef4444',
@@ -186,7 +188,7 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
                   Hazard: {activeHazard.hazard_type}
                 </div>
                 <div>Radius: {activeHazard.radius_km} km</div>
-                <div>Severity: {(activeHazard.severity * 100).toFixed(0)}%</div>
+                <div>Intensity: {(activeHazard.intensity * 100).toFixed(0)}%</div>
               </div>
             </Popup>
           </Circle>
@@ -206,7 +208,7 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
               center={[lat, lon]}
               radius={getNodeRadius(type) + (isSelected ? 3 : 0)}
               pathOptions={{
-                fillColor: getNodeColor(type, exposure, isHighlighted),
+                fillColor: getNodeColor(type, exposure, nodeStates[id], isHighlighted),
                 fillOpacity: 0.9,
                 color: isSelected ? '#ffffff' : isHighlighted ? '#bae6fd' : '#0f172a',
                 weight: isSelected ? 3 : 1.5,
@@ -233,9 +235,18 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
                   </div>
                   <div>District: <span className="font-medium">{district}</span></div>
                   <div>Coordinates: <span className="font-mono text-[11px]">{lat.toFixed(3)}, {lon.toFixed(3)}</span></div>
+                  {nodeStates[id] && (
+                    <div className="mt-1 pt-1 border-t flex justify-between">
+                      <span className="text-slate-500">DBN Disruption:</span>
+                      <span className={`font-bold ${nodeStates[id] === 'High' ? 'text-red-600' : nodeStates[id] === 'Medium' ? 'text-amber-600' : 'text-emerald-600'}`}>
+                        {nodeStates[id]}
+                      </span>
+                    </div>
+                  )}
                   {exposure > 0 && (
-                    <div className="mt-1 pt-1 border-t text-red-600 font-semibold">
-                      Exposure: {(exposure * 100).toFixed(1)}%
+                    <div className="flex justify-between text-red-600 font-semibold">
+                      <span>Spatial Exposure:</span>
+                      <span>{(exposure * 100).toFixed(1)}%</span>
                     </div>
                   )}
                 </div>

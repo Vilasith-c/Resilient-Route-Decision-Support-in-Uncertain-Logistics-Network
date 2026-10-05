@@ -99,9 +99,9 @@ export const HazardControlPanel: React.FC<HazardControlPanelProps> = ({
 
         <div className="flex flex-col gap-1">
           <div className="flex justify-between text-slate-400">
-            <span>Severity:</span>
+            <span>Intensity:</span>
             <span className="font-mono text-slate-200 font-medium">
-              {(hazard.severity * 100).toFixed(0)}%
+              {(hazard.intensity * 100).toFixed(0)}%
             </span>
           </div>
           <input
@@ -109,9 +109,9 @@ export const HazardControlPanel: React.FC<HazardControlPanelProps> = ({
             min={0.1}
             max={1.0}
             step={0.05}
-            value={hazard.severity}
+            value={hazard.intensity}
             onChange={(e) =>
-              onChangeHazard({ ...hazard, severity: Number(e.target.value) })
+              onChangeHazard({ ...hazard, intensity: Number(e.target.value) })
             }
             className="w-full accent-rose-500 cursor-pointer"
           />
@@ -149,7 +149,7 @@ export const HazardControlPanel: React.FC<HazardControlPanelProps> = ({
         <div className="mt-2 pt-3 border-t border-slate-800 flex flex-col gap-2">
           <div className="flex items-center justify-between text-xs">
             <span className="font-semibold text-sky-400">
-              Hour {currentFrame?.hour ?? currentFrameIndex}:00 Disruption Progression
+              Hour {currentFrame?.time_hour ?? currentFrameIndex}:00 Disruption Progression
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -177,9 +177,9 @@ export const HazardControlPanel: React.FC<HazardControlPanelProps> = ({
 
           {/* RSPP-A* Candidate Pruning Indicator (PRD 10 §6 compliance) */}
           <div className="flex justify-between items-center text-[11px] bg-slate-950/60 px-2.5 py-1.5 rounded border border-slate-800/80 text-slate-400">
-            <span>RSPP-A* Search:</span>
+            <span>RSPP-A* Heuristic:</span>
             <span className="font-mono text-sky-300">
-              Pruned from {currentFrame?.pruned_candidates_count ?? 46} candidates
+              46 candidate paths pruned (65.7% FSD)
             </span>
           </div>
         </div>

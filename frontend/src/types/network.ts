@@ -55,7 +55,7 @@ export interface NetworkResponse {
     unique_routes: number;
     macro_corridors_count: number;
   };
-  macro_corridors: Record<string, { name: string; description: string }>;
+  macro_corridors: Record<string, { name: string; description?: string }>;
   geojson: {
     type: 'FeatureCollection';
     features: (GeoJSONPointFeature | GeoJSONLineFeature)[];
@@ -72,52 +72,70 @@ export interface NetworkResponse {
 }
 
 export interface HazardInput {
-  hazard_type: 'cyclone' | 'flood' | 'strike' | 'heatwave' | 'infrastructure_failure';
-  epicenter_lat: number;
-  epicenter_lon: number;
+  hazard_id?: string;
+  hazard_type: string;
+  latitude: number;
+  longitude: number;
   radius_km: number;
-  severity: number;
-  duration_hours?: number;
+  intensity: number;
+  time_horizon?: number;
 }
 
 export interface CandidateRoute {
-  path: string[];
+  route: string;
+  path_nodes: string[];
   travel_time_hr: number;
-  reliability_alpha: number;
+  on_time_reliability_alpha: number;
   disruption_prob: number;
-  resilience_score: number;
   hops: number;
-  is_pareto_optimal?: boolean;
 }
 
-export interface ResilienceScorecard {
-  overall_resilience: number;
-  absorptive_capacity: number;
-  restorative_capacity: number;
-  adaptive_capacity: number;
-  redundancy_metric: number;
-  rapidity_metric: number;
-  vulnerable_hubs: string[];
-  high_risk_corridors: string[];
+export interface JiangResilienceScorecard {
+  rapid_response: number;
+  sustained_resistance: number;
+  continuous_running: number;
+  rapid_convergence: number;
+  dynamic_evolution: number;
+  overall_resilience_index: number;
+}
+
+export interface RouteStatus {
+  route_id: string;
+  source: string;
+  target: string;
+  corridor_id: string;
+  corridor_name: string;
+  distance_km: number;
+  travel_time_hr: number;
+  operational_pct: number;
+  status: string;
+}
+
+export interface CascadeEffect {
+  node: string;
+  time_hour: number;
+  cause: string;
+  impact: string;
+  severity: number;
 }
 
 export interface TimelineFrame {
-  hour: number;
-  timestamp_offset: string;
-  node_exposures: Record<string, number>;
+  time_hour: number;
   node_states: Record<string, string>;
-  edge_disruption_probs: Record<string, number>;
-  recommended_route: CandidateRoute | null;
-  candidate_routes: CandidateRoute[];
-  pruned_candidates_count: number;
-  resilience_scorecard: ResilienceScorecard;
-  active_hazard: HazardInput;
+  node_posteriors: Record<string, Record<string, number>>;
+  corridor_disruptions: Record<string, number>;
+  route_status: RouteStatus[];
+  cascade_effects: CascadeEffect[];
+  network_operational_index: number;
 }
 
 export interface EngineTimelineResult {
-  simulation_id: string;
   hazard_applied: HazardInput;
-  total_frames: number;
-  time_horizon_hours: number;
   frames: TimelineFrame[];
+  resilience_scorecard: JiangResilienceScorecard;
+  vulnerable_hub: string;
+  high_risk_edge: string;
+  primary_rerouted_solutions: CandidateRoute[];
+  execution_time_ms: number;
+  network_summary?: Record<string, any>;
 }

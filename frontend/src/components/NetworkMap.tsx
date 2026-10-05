@@ -85,6 +85,27 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
     }
   };
 
+  // Basemap style options (100% Free, NO API Keys, NO Watermarks)
+  const [basemap, setBasemap] = React.useState<'dark' | 'osm' | 'satellite'>('dark');
+
+  const BASEMAPS = {
+    dark: {
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+      attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+      label: 'Dark Canvas',
+    },
+    osm: {
+      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      label: 'Street (OSM)',
+    },
+    satellite: {
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      attribution: 'Source: Esri, Maxar, Earthstar Geographics',
+      label: 'Satellite',
+    },
+  };
+
   return (
     <div className="relative w-full h-full rounded-xl overflow-hidden shadow-2xl border border-slate-800">
       <MapContainer
@@ -93,10 +114,11 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
         className="w-full h-full"
         scrollWheelZoom={true}
       >
-        {/* CARTO Dark Positron / Basemap */}
+        {/* Active Free Public Tile Layer */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>, &copy; <a href="https://carto.com/">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          key={basemap}
+          attribution={BASEMAPS[basemap].attribution}
+          url={BASEMAPS[basemap].url}
           maxZoom={19}
         />
 
@@ -222,6 +244,24 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
           );
         })}
       </MapContainer>
+
+      {/* Basemap Style Switcher (Top-Right) */}
+      <div className="absolute top-4 right-4 z-[1000] bg-slate-900/90 backdrop-blur-md p-1 rounded-lg border border-slate-700/60 shadow-xl flex gap-1 pointer-events-auto">
+        {(Object.keys(BASEMAPS) as Array<keyof typeof BASEMAPS>).map((key) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setBasemap(key)}
+            className={`px-2.5 py-1 text-xs rounded-md font-medium transition ${
+              basemap === key
+                ? 'bg-sky-500 text-slate-950 font-semibold shadow'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+            }`}
+          >
+            {BASEMAPS[key].label}
+          </button>
+        ))}
+      </div>
 
       {/* Map Legend Overlay */}
       <div className="absolute bottom-4 left-4 z-[1000] bg-slate-900/90 backdrop-blur-md px-3 py-2 rounded-lg border border-slate-700/60 text-xs text-slate-200 shadow-xl pointer-events-auto">

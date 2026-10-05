@@ -15,6 +15,7 @@ venv/
 ENV/
 build/
 dist/
+node_modules/
 *.egg-info/
 
 # IDE & Editors

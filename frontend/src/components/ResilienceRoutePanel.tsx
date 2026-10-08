@@ -5,6 +5,7 @@ import { ShieldCheck, Navigation, AlertOctagon, Activity } from 'lucide-react';
 interface ResilienceRoutePanelProps {
   timelineResult: EngineTimelineResult | null;
   currentFrame: TimelineFrame | null;
+  selectedRoute?: CandidateRoute | null;
   onSelectRoute?: (route: CandidateRoute) => void;
   selectedRouteNodes?: string[];
 }
@@ -12,15 +13,16 @@ interface ResilienceRoutePanelProps {
 export const ResilienceRoutePanel: React.FC<ResilienceRoutePanelProps> = ({
   timelineResult,
   currentFrame,
+  selectedRoute,
   onSelectRoute,
   selectedRouteNodes = [],
 }) => {
   const scorecard = timelineResult?.resilience_scorecard;
   const candidateRoutes = timelineResult?.primary_rerouted_solutions || [];
-  const recommendedRoute = candidateRoutes[0] || null;
+  const activeRoute = selectedRoute || candidateRoutes[0] || null;
 
   return (
-    <div className="flex flex-col gap-4 bg-slate-900/90 backdrop-blur-md p-4 rounded-xl border border-slate-800 text-slate-200 overflow-y-auto max-h-[calc(100vh-140px)]">
+    <div className="flex flex-col gap-4 bg-slate-900/90 backdrop-blur-md p-4 rounded-xl border border-slate-800 text-slate-200 overflow-y-auto h-full shadow-2xl">
       {/* 1. Recommended Route Overview */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -35,45 +37,49 @@ export const ResilienceRoutePanel: React.FC<ResilienceRoutePanelProps> = ({
           </span>
         </div>
 
-        {recommendedRoute ? (
+        {activeRoute ? (
           <div className="bg-slate-950/70 p-3 rounded-lg border border-slate-800/80 flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-400">Total Travel Time:</span>
               <span className="font-mono text-sm font-bold text-sky-300">
-                {recommendedRoute.travel_time_hr.toFixed(2)} hrs
+                {activeRoute.travel_time_hr.toFixed(2)} hrs
               </span>
             </div>
 
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-400">On-Time Reliability (&alpha;):</span>
               <span className="font-mono text-xs font-semibold text-emerald-400">
-                {(recommendedRoute.on_time_reliability_alpha * 100).toFixed(1)}%
+                {(activeRoute.on_time_reliability_alpha * 100).toFixed(1)}%
               </span>
             </div>
 
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-400">Disruption Risk:</span>
               <span className="font-mono text-xs font-semibold text-rose-400">
-                {(recommendedRoute.disruption_prob * 100).toFixed(1)}%
+                {(activeRoute.disruption_prob * 100).toFixed(1)}%
               </span>
             </div>
 
             {/* Path Breadcrumbs */}
             <div className="mt-1 pt-2 border-t border-slate-800 text-xs">
               <div className="text-[11px] text-slate-400 mb-1">
-                Route Path ({recommendedRoute.hops} hops):
+                Route Path ({activeRoute.hops} hops):
               </div>
               <div className="font-mono text-[11px] text-slate-300 bg-slate-900/80 p-2 rounded border border-slate-800/60 break-words leading-relaxed">
-                {recommendedRoute.path_nodes.map((node, i) => (
+                {activeRoute.path_nodes.map((node, i) => (
                   <span key={node}>
                     <span className="text-sky-300 font-medium">{node}</span>
-                    {i < recommendedRoute.path_nodes.length - 1 && (
+                    {i < activeRoute.path_nodes.length - 1 && (
                       <span className="text-slate-600 mx-1">&rarr;</span>
                     )}
                   </span>
                 ))}
               </div>
             </div>
+          </div>
+        ) : timelineResult ? (
+          <div className="text-xs text-amber-400/90 italic p-3 text-center bg-amber-950/20 rounded-lg border border-amber-900/40">
+            Severe corridor chokepoints: no viable route met the &alpha;-reliability threshold under this shock scenario.
           </div>
         ) : (
           <div className="text-xs text-slate-500 italic p-3 text-center bg-slate-950/40 rounded-lg border border-slate-800/40">
@@ -160,7 +166,7 @@ export const ResilienceRoutePanel: React.FC<ResilienceRoutePanelProps> = ({
           </div>
           <div className="flex flex-col gap-1.5">
             {candidateRoutes.map((cr, idx) => {
-              const isSelected = selectedRouteNodes.join(',') === cr.path_nodes.join(',');
+              const isSelected = activeRoute?.route === cr.route || selectedRouteNodes.join(',') === cr.path_nodes.join(',');
               return (
                 <button
                   key={idx}

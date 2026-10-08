@@ -1,6 +1,6 @@
 import React from 'react';
 import type { HazardInput, EngineTimelineResult } from '../types/network';
-import { AlertTriangle, Play, Pause, RotateCcw, CloudRain, Flame, Zap, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, Play, Pause, RotateCcw, CloudRain, Flame, Zap, ShieldAlert, Mountain, CloudLightning, Building2 } from 'lucide-react';
 
 interface HazardControlPanelProps {
   hazard: HazardInput;
@@ -38,21 +38,21 @@ export const HazardControlPanel: React.FC<HazardControlPanelProps> = ({
             Spatial Hazard Controller
           </h2>
         </div>
-        <span className="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono">
-          Click Map to Relocate
-        </span>
       </div>
 
       {/* Hazard Type Selector */}
       <div className="flex flex-col gap-1.5">
         <label className="text-xs text-slate-400 font-medium">Hazard Type</label>
-        <div className="grid grid-cols-3 gap-2 text-xs">
+        <div className="grid grid-cols-4 gap-1.5 text-xs">
           {[
             { id: 'cyclone', label: 'Cyclone', icon: CloudRain },
             { id: 'flood', label: 'Flood', icon: ShieldAlert },
             { id: 'heatwave', label: 'Heatwave', icon: Flame },
+            { id: 'thunderstorm', label: 'Thunder', icon: CloudLightning },
+            { id: 'landslide', label: 'Landslide', icon: Mountain },
             { id: 'infrastructure_failure', label: 'Infr. Fail', icon: Zap },
             { id: 'strike', label: 'Strike', icon: AlertTriangle },
+            { id: 'hub_outage', label: 'Hub Outage', icon: Building2 },
           ].map((item) => {
             const Icon = item.icon;
             const isSelected = hazard.hazard_type === item.id;

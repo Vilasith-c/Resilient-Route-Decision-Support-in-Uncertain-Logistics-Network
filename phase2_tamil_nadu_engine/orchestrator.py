@@ -311,6 +311,20 @@ class SimulationOrchestrator:
         )
         primary_solutions = rspp_results.get("pareto_solutions", [])
 
+        # Adaptive relaxation fallback: if severe shock degrades all corridors below 0.30,
+        # progressively search with lower alpha thresholds so the engine always provides
+        # the best-effort resilient route rather than returning empty solutions.
+        if not primary_solutions:
+            for fallback_alpha in [0.15, 0.05, 0.01, 0.0001]:
+                rspp_fallback = rspp_solver.find_pareto_reliable_paths(
+                    source="HQ_Chennai",
+                    target="WH_30_Nagercoil",
+                    alpha_min_reliability=fallback_alpha
+                )
+                primary_solutions = rspp_fallback.get("pareto_solutions", [])
+                if primary_solutions:
+                    break
+
         # Bottleneck Identification
         hub_risks: Dict[str, float] = {}
         for nid, ndata in TN_NODES.items():

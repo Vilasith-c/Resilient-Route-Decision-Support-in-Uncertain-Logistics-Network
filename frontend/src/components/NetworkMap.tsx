@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Polyline, Popup, Circle, useMapEvents } from 'react-leaflet';
+import React, { useMemo, useState } from 'react';
+import L from 'leaflet';
+import { MapContainer, TileLayer, CircleMarker, Marker, Polyline, Popup, Circle, useMapEvents, ZoomControl } from 'react-leaflet';
 import type { LatLngExpression } from 'leaflet';
 import type { NetworkResponse, GeoJSONPointFeature, GeoJSONLineFeature, HazardInput } from '../types/network';
 
@@ -18,11 +19,27 @@ interface NetworkMapProps {
 const TN_CENTER: LatLngExpression = [11.1271, 78.6569];
 const DEFAULT_ZOOM = 7;
 
-function MapEventsHandler({ onMapClick }: { onMapClick?: (lat: number, lon: number) => void }) {
-  useMapEvents({
+function MapEventsHandler({
+  onMapClick,
+  onZoomChange,
+}: {
+  onMapClick?: (lat: number, lon: number) => void;
+  onZoomChange?: (zoom: number) => void;
+}) {
+  const map = useMapEvents({
     click(e) {
       if (onMapClick) {
         onMapClick(e.latlng.lat, e.latlng.lng);
+      }
+    },
+    zoomend() {
+      if (onZoomChange) {
+        onZoomChange(map.getZoom());
+      }
+    },
+    zoom() {
+      if (onZoomChange) {
+        onZoomChange(map.getZoom());
       }
     },
   });
@@ -39,6 +56,239 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
   nodeExposures = {},
   nodeStates = {},
 }) => {
+  const [currentZoom, setCurrentZoom] = useState<number>(DEFAULT_ZOOM);
+
+  // Dynamic HQ pin sizing based on map zoom level
+  const getHqIconSize = (zoom: number, isSelected: boolean) => {
+    // Scales smoothly according to zoom level (from ~24px at overview to ~70px at close zoom)
+    const baseWidth = Math.max(22, Math.min(76, Math.round(34 * Math.pow(1.22, zoom - DEFAULT_ZOOM))));
+    const width = isSelected ? Math.round(baseWidth * 1.25) : baseWidth;
+    const height = Math.round(width * (356 / 300));
+    return [width, height] as [number, number];
+  };
+
+  const createHqIcon = (
+    width: number,
+    height: number,
+    isHighlighted: boolean,
+    isSelected: boolean,
+    state?: string,
+    exposure: number = 0
+  ) => {
+    const isHighDisruption = state === 'High' || exposure > 0.6;
+    const isMedDisruption = state === 'Medium' || exposure > 0.25;
+
+    let filterStyle = 'drop-shadow(0 4px 6px rgba(0,0,0,0.6))';
+    if (isSelected) {
+      filterStyle = 'drop-shadow(0 0 12px rgba(56, 189, 248, 0.95)) drop-shadow(0 4px 6px rgba(0,0,0,0.6))';
+    } else if (isHighlighted) {
+      filterStyle = 'drop-shadow(0 0 10px rgba(56, 189, 248, 0.9))';
+    } else if (isHighDisruption) {
+      filterStyle = 'drop-shadow(0 0 10px rgba(239, 68, 68, 0.95))';
+    } else if (isMedDisruption) {
+      filterStyle = 'drop-shadow(0 0 8px rgba(249, 115, 22, 0.85))';
+    }
+
+    const html = `
+      <div style="
+        width: ${width}px;
+        height: ${height}px;
+        position: relative;
+        filter: ${filterStyle};
+        transition: transform 0.15s ease-out;
+        cursor: pointer;
+        user-select: none;
+      ">
+        <img
+          src="/hq-icon.png"
+          alt="HQ"
+          style="
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            pointer-events: none;
+          "
+        />
+        ${isHighDisruption ? `
+          <span style="
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            width: 10px;
+            height: 10px;
+            background: #ef4444;
+            border: 1.5px solid #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #ef4444;
+          "></span>
+        ` : ''}
+      </div>
+    `;
+
+    return L.divIcon({
+      html,
+      className: 'hq-marker-icon',
+      iconSize: [width, height],
+      iconAnchor: [width / 2, height],
+      popupAnchor: [0, -height + 4],
+    });
+  };
+
+  // Dynamic Warehouse pin sizing based on map zoom level
+  const getWarehouseIconSize = (zoom: number, isSelected: boolean) => {
+    // 30 Warehouses scale proportionately with map zoom
+    const baseWidth = Math.max(16, Math.min(56, Math.round(24 * Math.pow(1.22, zoom - DEFAULT_ZOOM))));
+    const width = isSelected ? Math.round(baseWidth * 1.25) : baseWidth;
+    const height = Math.round(width * (341 / 315));
+    return [width, height] as [number, number];
+  };
+
+  const createWarehouseIcon = (
+    width: number,
+    height: number,
+    isHighlighted: boolean,
+    isSelected: boolean,
+    state?: string,
+    exposure: number = 0
+  ) => {
+    const isHighDisruption = state === 'High' || exposure > 0.6;
+    const isMedDisruption = state === 'Medium' || exposure > 0.25;
+
+    let filterStyle = 'drop-shadow(0 3px 5px rgba(0,0,0,0.5))';
+    if (isSelected) {
+      filterStyle = 'drop-shadow(0 0 10px rgba(56, 189, 248, 0.95)) drop-shadow(0 3px 5px rgba(0,0,0,0.6))';
+    } else if (isHighlighted) {
+      filterStyle = 'drop-shadow(0 0 8px rgba(56, 189, 248, 0.9))';
+    } else if (isHighDisruption) {
+      filterStyle = 'drop-shadow(0 0 8px rgba(239, 68, 68, 0.95))';
+    } else if (isMedDisruption) {
+      filterStyle = 'drop-shadow(0 0 6px rgba(249, 115, 22, 0.85))';
+    }
+
+    const html = `
+      <div style="
+        width: ${width}px;
+        height: ${height}px;
+        position: relative;
+        filter: ${filterStyle};
+        transition: transform 0.15s ease-out;
+        cursor: pointer;
+        user-select: none;
+      ">
+        <img
+          src="/warehouse-icon.png"
+          alt="Warehouse"
+          style="
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            pointer-events: none;
+          "
+        />
+        ${isHighDisruption ? `
+          <span style="
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border: 1.5px solid #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 5px #ef4444;
+          "></span>
+        ` : ''}
+      </div>
+    `;
+
+    return L.divIcon({
+      html,
+      className: 'warehouse-marker-icon',
+      iconSize: [width, height],
+      iconAnchor: [width / 2, height],
+      popupAnchor: [0, -height + 4],
+    });
+  };
+
+  // Dynamic Regional Hub pin sizing based on map zoom level
+  const getHubIconSize = (zoom: number, isSelected: boolean) => {
+    // 10 Regional Hubs scale smoothly between HQ and Warehouse sizes
+    const baseWidth = Math.max(18, Math.min(66, Math.round(29 * Math.pow(1.22, zoom - DEFAULT_ZOOM))));
+    const width = isSelected ? Math.round(baseWidth * 1.25) : baseWidth;
+    const height = Math.round(width * (358 / 310));
+    return [width, height] as [number, number];
+  };
+
+  const createHubIcon = (
+    width: number,
+    height: number,
+    isHighlighted: boolean,
+    isSelected: boolean,
+    state?: string,
+    exposure: number = 0
+  ) => {
+    const isHighDisruption = state === 'High' || exposure > 0.6;
+    const isMedDisruption = state === 'Medium' || exposure > 0.25;
+
+    let filterStyle = 'drop-shadow(0 3.5px 5.5px rgba(0,0,0,0.55))';
+    if (isSelected) {
+      filterStyle = 'drop-shadow(0 0 11px rgba(56, 189, 248, 0.95)) drop-shadow(0 3.5px 5.5px rgba(0,0,0,0.6))';
+    } else if (isHighlighted) {
+      filterStyle = 'drop-shadow(0 0 9px rgba(56, 189, 248, 0.9))';
+    } else if (isHighDisruption) {
+      filterStyle = 'drop-shadow(0 0 9px rgba(239, 68, 68, 0.95))';
+    } else if (isMedDisruption) {
+      filterStyle = 'drop-shadow(0 0 7px rgba(249, 115, 22, 0.85))';
+    }
+
+    const html = `
+      <div style="
+        width: ${width}px;
+        height: ${height}px;
+        position: relative;
+        filter: ${filterStyle};
+        transition: transform 0.15s ease-out;
+        cursor: pointer;
+        user-select: none;
+      ">
+        <img
+          src="/hub-icon.png"
+          alt="Regional Hub"
+          style="
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            pointer-events: none;
+          "
+        />
+        ${isHighDisruption ? `
+          <span style="
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            width: 9px;
+            height: 9px;
+            background: #ef4444;
+            border: 1.5px solid #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 5px #ef4444;
+          "></span>
+        ` : ''}
+      </div>
+    `;
+
+    return L.divIcon({
+      html,
+      className: 'hub-marker-icon',
+      iconSize: [width, height],
+      iconAnchor: [width / 2, height],
+      popupAnchor: [0, -height + 4],
+    });
+  };
+
   // Separate points and lines from GeoJSON
   const { nodeFeatures, lineFeatures } = useMemo(() => {
     if (!network?.geojson?.features) {
@@ -115,7 +365,9 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
         zoom={DEFAULT_ZOOM}
         className="w-full h-full"
         scrollWheelZoom={true}
+        zoomControl={false}
       >
+        <ZoomControl position="topright" />
         {/* Active Free Public Tile Layer */}
         <TileLayer
           key={basemap}
@@ -124,7 +376,7 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
           maxZoom={19}
         />
 
-        <MapEventsHandler onMapClick={onMapClick} />
+        <MapEventsHandler onMapClick={onMapClick} onZoomChange={setCurrentZoom} />
 
         {/* 1. Macro Corridor Edges (LineStrings) */}
         {lineFeatures.map((line) => {
@@ -202,6 +454,169 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
           const isHighlighted = highlightedRouteNodes.includes(id);
           const isSelected = selectedNode === id;
 
+          // Render Headquarters using custom zoom-responsive HQ icon
+          if (type === 'HQ') {
+            const [iconWidth, iconHeight] = getHqIconSize(currentZoom, isSelected);
+            const hqIcon = createHqIcon(
+              iconWidth,
+              iconHeight,
+              isHighlighted,
+              isSelected,
+              nodeStates[id],
+              exposure
+            );
+
+            return (
+              <Marker
+                key={id}
+                position={[lat, lon]}
+                icon={hqIcon}
+                eventHandlers={{
+                  click: () => onSelectNode(id),
+                }}
+              >
+                <Popup className="text-slate-900">
+                  <div className="text-xs font-sans min-w-[150px]">
+                    <div className="flex items-center justify-between border-b pb-1 mb-1 gap-2">
+                      <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                        <img src="/hq-icon.png" alt="HQ" className="w-4 h-4 object-contain" />
+                        <span>{name}</span>
+                      </div>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold bg-sky-100 text-sky-800">
+                        {type} (T{tier})
+                      </span>
+                    </div>
+                    <div>District: <span className="font-medium">{district}</span></div>
+                    <div>Coordinates: <span className="font-mono text-[11px]">{lat.toFixed(3)}, {lon.toFixed(3)}</span></div>
+                    {nodeStates[id] && (
+                      <div className="mt-1 pt-1 border-t flex justify-between">
+                        <span className="text-slate-500">DBN Disruption:</span>
+                        <span className={`font-bold ${nodeStates[id] === 'High' ? 'text-red-600' : nodeStates[id] === 'Medium' ? 'text-amber-600' : 'text-emerald-600'}`}>
+                          {nodeStates[id]}
+                        </span>
+                      </div>
+                    )}
+                    {exposure > 0 && (
+                      <div className="flex justify-between text-red-600 font-semibold">
+                        <span>Spatial Exposure:</span>
+                        <span>{(exposure * 100).toFixed(1)}%</span>
+                      </div>
+                    )}
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          }
+
+          // Render Warehouses using custom zoom-responsive Warehouse icon
+          if (type === 'Warehouse') {
+            const [iconWidth, iconHeight] = getWarehouseIconSize(currentZoom, isSelected);
+            const warehouseIcon = createWarehouseIcon(
+              iconWidth,
+              iconHeight,
+              isHighlighted,
+              isSelected,
+              nodeStates[id],
+              exposure
+            );
+
+            return (
+              <Marker
+                key={id}
+                position={[lat, lon]}
+                icon={warehouseIcon}
+                eventHandlers={{
+                  click: () => onSelectNode(id),
+                }}
+              >
+                <Popup className="text-slate-900">
+                  <div className="text-xs font-sans min-w-[150px]">
+                    <div className="flex items-center justify-between border-b pb-1 mb-1 gap-2">
+                      <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                        <img src="/warehouse-icon.png" alt="Warehouse" className="w-4 h-4 object-contain" />
+                        <span>{name}</span>
+                      </div>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold bg-amber-100 text-amber-900">
+                        {type} (T{tier})
+                      </span>
+                    </div>
+                    <div>District: <span className="font-medium">{district}</span></div>
+                    <div>Coordinates: <span className="font-mono text-[11px]">{lat.toFixed(3)}, {lon.toFixed(3)}</span></div>
+                    {nodeStates[id] && (
+                      <div className="mt-1 pt-1 border-t flex justify-between">
+                        <span className="text-slate-500">DBN Disruption:</span>
+                        <span className={`font-bold ${nodeStates[id] === 'High' ? 'text-red-600' : nodeStates[id] === 'Medium' ? 'text-amber-600' : 'text-emerald-600'}`}>
+                          {nodeStates[id]}
+                        </span>
+                      </div>
+                    )}
+                    {exposure > 0 && (
+                      <div className="flex justify-between text-red-600 font-semibold">
+                        <span>Spatial Exposure:</span>
+                        <span>{(exposure * 100).toFixed(1)}%</span>
+                      </div>
+                    )}
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          }
+
+          // Render Regional Hubs using custom zoom-responsive Hub icon
+          if (type === 'Hub') {
+            const [iconWidth, iconHeight] = getHubIconSize(currentZoom, isSelected);
+            const hubIcon = createHubIcon(
+              iconWidth,
+              iconHeight,
+              isHighlighted,
+              isSelected,
+              nodeStates[id],
+              exposure
+            );
+
+            return (
+              <Marker
+                key={id}
+                position={[lat, lon]}
+                icon={hubIcon}
+                eventHandlers={{
+                  click: () => onSelectNode(id),
+                }}
+              >
+                <Popup className="text-slate-900">
+                  <div className="text-xs font-sans min-w-[150px]">
+                    <div className="flex items-center justify-between border-b pb-1 mb-1 gap-2">
+                      <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                        <img src="/hub-icon.png" alt="Hub" className="w-4 h-4 object-contain" />
+                        <span>{name}</span>
+                      </div>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold bg-emerald-100 text-emerald-900">
+                        {type} (T{tier})
+                      </span>
+                    </div>
+                    <div>District: <span className="font-medium">{district}</span></div>
+                    <div>Coordinates: <span className="font-mono text-[11px]">{lat.toFixed(3)}, {lon.toFixed(3)}</span></div>
+                    {nodeStates[id] && (
+                      <div className="mt-1 pt-1 border-t flex justify-between">
+                        <span className="text-slate-500">DBN Disruption:</span>
+                        <span className={`font-bold ${nodeStates[id] === 'High' ? 'text-red-600' : nodeStates[id] === 'Medium' ? 'text-amber-600' : 'text-emerald-600'}`}>
+                          {nodeStates[id]}
+                        </span>
+                      </div>
+                    )}
+                    {exposure > 0 && (
+                      <div className="flex justify-between text-red-600 font-semibold">
+                        <span>Spatial Exposure:</span>
+                        <span>{(exposure * 100).toFixed(1)}%</span>
+                      </div>
+                    )}
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          }
+
+          // Fallback for any other custom node types
           return (
             <CircleMarker
               key={id}
@@ -221,34 +636,12 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
                 <div className="text-xs font-sans min-w-[140px]">
                   <div className="flex items-center justify-between border-b pb-1 mb-1">
                     <span className="font-bold text-slate-900">{name}</span>
-                    <span
-                      className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
-                        type === 'HQ'
-                          ? 'bg-sky-100 text-sky-800'
-                          : type === 'Hub'
-                          ? 'bg-purple-100 text-purple-800'
-                          : 'bg-emerald-100 text-emerald-800'
-                      }`}
-                    >
+                    <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold bg-purple-100 text-purple-800">
                       {type} (T{tier})
                     </span>
                   </div>
                   <div>District: <span className="font-medium">{district}</span></div>
                   <div>Coordinates: <span className="font-mono text-[11px]">{lat.toFixed(3)}, {lon.toFixed(3)}</span></div>
-                  {nodeStates[id] && (
-                    <div className="mt-1 pt-1 border-t flex justify-between">
-                      <span className="text-slate-500">DBN Disruption:</span>
-                      <span className={`font-bold ${nodeStates[id] === 'High' ? 'text-red-600' : nodeStates[id] === 'Medium' ? 'text-amber-600' : 'text-emerald-600'}`}>
-                        {nodeStates[id]}
-                      </span>
-                    </div>
-                  )}
-                  {exposure > 0 && (
-                    <div className="flex justify-between text-red-600 font-semibold">
-                      <span>Spatial Exposure:</span>
-                      <span>{(exposure * 100).toFixed(1)}%</span>
-                    </div>
-                  )}
                 </div>
               </Popup>
             </CircleMarker>
@@ -274,20 +667,20 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
         ))}
       </div>
 
-      {/* Map Legend Overlay */}
-      <div className="absolute bottom-4 left-4 z-[1000] bg-slate-900/90 backdrop-blur-md px-3 py-2 rounded-lg border border-slate-700/60 text-xs text-slate-200 shadow-xl pointer-events-auto">
+      {/* Map Legend Overlay (Positioned above bottom timeline) */}
+      <div className="absolute bottom-26 left-4 z-[1000] bg-slate-900/90 backdrop-blur-md px-3 py-2 rounded-lg border border-slate-700/60 text-xs text-slate-200 shadow-xl pointer-events-auto">
         <div className="font-semibold text-slate-300 mb-1.5 text-[11px] uppercase tracking-wider">Topology Legend</div>
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-sky-500 border border-slate-900" />
+            <img src="/hq-icon.png" alt="HQ" className="w-3.5 h-3.5 object-contain" />
             <span>Headquarters (3)</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-purple-500 border border-slate-900" />
+            <img src="/hub-icon.png" alt="Hub" className="w-3.5 h-3.5 object-contain" />
             <span>Regional Hubs (10)</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 border border-slate-900" />
+            <img src="/warehouse-icon.png" alt="WH" className="w-3.5 h-3.5 object-contain" />
             <span>Warehouses (30)</span>
           </div>
           <div className="flex items-center gap-2 pt-1 border-t border-slate-800">

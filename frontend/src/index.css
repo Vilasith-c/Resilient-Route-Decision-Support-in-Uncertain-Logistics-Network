@@ -34,3 +34,12 @@ html, body, #root {
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
+
+/* Custom HQ, Hub & Warehouse Map Marker styling */
+.hq-marker-icon,
+.hub-marker-icon,
+.warehouse-marker-icon {
+  background: transparent !important;
+  border: none !important;
+}
+

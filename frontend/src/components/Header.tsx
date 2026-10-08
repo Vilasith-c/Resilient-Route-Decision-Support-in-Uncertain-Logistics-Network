@@ -1,13 +1,13 @@
 import React from 'react';
-import { Truck, CheckCircle2, XCircle, Activity, GitBranch } from 'lucide-react';
+import { Truck, Activity, GitBranch } from 'lucide-react';
 import type { NetworkResponse } from '../types/network';
 
 interface HeaderProps {
   network: NetworkResponse | null;
-  backendStatus: 'connected' | 'disconnected' | 'connecting';
+  backendStatus?: 'connected' | 'disconnected' | 'connecting';
 }
 
-export const Header: React.FC<HeaderProps> = ({ network, backendStatus }) => {
+export const Header: React.FC<HeaderProps> = ({ network }) => {
   return (
     <header className="h-14 bg-slate-900/95 border-b border-slate-800 px-4 flex items-center justify-between z-10 select-none">
       {/* Brand & Title */}
@@ -46,36 +46,6 @@ export const Header: React.FC<HeaderProps> = ({ network, backendStatus }) => {
           </div>
         </div>
       )}
-
-      {/* Backend Status indicator */}
-      <div className="flex items-center gap-2 text-xs">
-        <div
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-medium ${
-            backendStatus === 'connected'
-              ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-400'
-              : backendStatus === 'connecting'
-              ? 'bg-amber-950/60 border-amber-500/40 text-amber-400'
-              : 'bg-rose-950/60 border-rose-500/40 text-rose-400'
-          }`}
-        >
-          {backendStatus === 'connected' ? (
-            <>
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-              <span>FastAPI Connected</span>
-            </>
-          ) : backendStatus === 'connecting' ? (
-            <>
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-              <span>Connecting...</span>
-            </>
-          ) : (
-            <>
-              <XCircle className="w-3.5 h-3.5 text-rose-400" />
-              <span>Backend Offline</span>
-            </>
-          )}
-        </div>
-      </div>
     </header>
   );
 };

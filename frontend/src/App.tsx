@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { NetworkResponse, HazardInput, EngineTimelineResult, CandidateRoute } from './types/network';
 import { fetchNetwork, simulateHazard, fetchHealth } from './services/api';
-import { Header } from './components/Header';
 import { NetworkMap } from './components/NetworkMap';
-import { HazardControlPanel } from './components/HazardControlPanel';
+import { HazardDropdown } from './components/HazardDropdown';
+import { MeasurementsDropdown } from './components/MeasurementsDropdown';
 import { ResilienceRoutePanel } from './components/ResilienceRoutePanel';
+import { VentuskyTimeline } from './components/VentuskyTimeline';
 
 export const App: React.FC = () => {
   const [network, setNetwork] = useState<NetworkResponse | null>(null);
@@ -27,6 +28,7 @@ export const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [selectedRoute, setSelectedRoute] = useState<CandidateRoute | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<'hazard' | 'measurements' | null>(null);
 
   const playbackTimerRef = useRef<number | null>(null);
 
@@ -87,9 +89,8 @@ export const App: React.FC = () => {
       setTimelineResult(result);
       setCurrentFrameIndex(0);
       setIsPlaying(true);
-      if (result.primary_rerouted_solutions && result.primary_rerouted_solutions.length > 0) {
-        setSelectedRoute(result.primary_rerouted_solutions[0]);
-      }
+      const solutions = result.primary_rerouted_solutions || [];
+      setSelectedRoute(solutions.length > 0 ? solutions[0] : null);
     } catch (err: any) {
       console.error('Simulation error:', err);
       alert(`Simulation error: ${err.message || 'Check console'}`);
@@ -112,13 +113,11 @@ export const App: React.FC = () => {
   // Active highlighted route path nodes
   const highlightedRouteNodes =
     selectedRoute?.path_nodes ||
-    timelineResult?.primary_rerouted_solutions?.[0]?.path_nodes ||
-    [];
+    (timelineResult?.primary_rerouted_solutions?.[0]?.path_nodes ?? []);
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-950 font-sans">
-      {/* 1. System Header */}
-      <Header network={network} backendStatus={backendStatus} />
+
 
       {/* 2. Main Dashboard Layout */}
       <main className="flex-1 relative flex overflow-hidden p-3 gap-3">
@@ -133,6 +132,44 @@ export const App: React.FC = () => {
             highlightedRouteNodes={highlightedRouteNodes}
             nodeStates={currentFrame?.node_states}
           />
+
+          {/* Ventusky-Style Floating Controls on the Left Side */}
+          <div className="absolute top-4 left-4 z-[1000] flex flex-col items-start gap-2.5 pointer-events-auto">
+            <HazardDropdown
+              hazard={hazard}
+              onChangeHazard={setHazard}
+              onApplyHazard={handleApplyHazard}
+              isLoading={isLoading}
+              isOpen={openDropdown === 'hazard'}
+              onToggle={() => setOpenDropdown((prev) => (prev === 'hazard' ? null : 'hazard'))}
+              onClose={() => setOpenDropdown(null)}
+            />
+
+            <MeasurementsDropdown
+              hazard={hazard}
+              onChangeHazard={setHazard}
+              onApplyHazard={handleApplyHazard}
+              isLoading={isLoading}
+              isOpen={openDropdown === 'measurements'}
+              onToggle={() => setOpenDropdown((prev) => (prev === 'measurements' ? null : 'measurements'))}
+              onClose={() => setOpenDropdown(null)}
+            />
+          </div>
+
+          {/* Ventusky-Style Bottom Timeline Bar */}
+          <div className="absolute bottom-0 left-0 right-0 z-[1000] pointer-events-auto">
+            <VentuskyTimeline
+              timelineResult={timelineResult}
+              currentFrameIndex={currentFrameIndex}
+              onSelectFrame={setCurrentFrameIndex}
+              isPlaying={isPlaying}
+              onTogglePlay={() => setIsPlaying(!isPlaying)}
+              onApplyHazard={handleApplyHazard}
+              onClearHazard={handleClearHazard}
+              isLoading={isLoading}
+              timeHorizon={hazard.time_horizon}
+            />
+          </div>
 
           {backendStatus === 'disconnected' && (
             <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-[1100] flex items-center justify-center p-6">
@@ -162,26 +199,12 @@ export const App: React.FC = () => {
           )}
         </div>
 
-        {/* Right Side: Control Panels */}
-        <div className="w-[420px] flex flex-col gap-3 shrink-0 h-full overflow-hidden">
-          {/* Spatial Hazard Placement & Timeline Controller */}
-          <HazardControlPanel
-            hazard={hazard}
-            onChangeHazard={setHazard}
-            onApplyHazard={handleApplyHazard}
-            onClearHazard={handleClearHazard}
-            isLoading={isLoading}
-            timelineResult={timelineResult}
-            currentFrameIndex={currentFrameIndex}
-            onChangeFrame={setCurrentFrameIndex}
-            isPlaying={isPlaying}
-            onTogglePlay={() => setIsPlaying(!isPlaying)}
-          />
-
-          {/* RSPP-A* Route Recommendation & Resilience Scorecard */}
+        {/* Right Side: RSPP-A* Route Recommendation & Resilience Scorecard */}
+        <div className="w-[420px] flex flex-col shrink-0 h-full overflow-hidden">
           <ResilienceRoutePanel
             timelineResult={timelineResult}
             currentFrame={currentFrame}
+            selectedRoute={selectedRoute}
             onSelectRoute={setSelectedRoute}
             selectedRouteNodes={highlightedRouteNodes}
           />

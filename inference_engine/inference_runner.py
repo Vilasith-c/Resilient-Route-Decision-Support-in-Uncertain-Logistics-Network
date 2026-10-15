@@ -12,7 +12,10 @@ Caching strategy:
 
 from __future__ import annotations
 from pgmpy.inference import VariableElimination
-from pgmpy.models import BayesianNetwork
+try:
+    from pgmpy.models import DiscreteBayesianNetwork as BayesianNetwork
+except ImportError:
+    from pgmpy.models import BayesianNetwork
 
 
 # ---------------------------------------------------------------------------

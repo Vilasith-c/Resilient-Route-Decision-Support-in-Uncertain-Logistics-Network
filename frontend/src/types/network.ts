@@ -1,4 +1,5 @@
 export type NodeType = 'HQ' | 'Hub' | 'Warehouse';
+export type BasemapType = 'dark' | 'street' | 'satellite';
 
 export interface NodeProperties {
   id: string;
@@ -79,6 +80,8 @@ export interface HazardInput {
   radius_km: number;
   intensity: number;
   time_horizon?: number;
+  source?: string;
+  target?: string;
 }
 
 export interface CandidateRoute {

@@ -303,10 +303,13 @@ class SimulationOrchestrator:
         # -------------------------------------------------------------------
         # STAGE 6: RSPP-A* Dynamic Re-routing across Pareto Frontiers
         # -------------------------------------------------------------------
+        src_node = hazard.source if (getattr(hazard, "source", None) and hazard.source in self.base_graph) else "HQ_Chennai"
+        tgt_node = hazard.target if (getattr(hazard, "target", None) and hazard.target in self.base_graph) else "HQ_Madurai"
+
         rspp_solver = RSPPAStarSolver(degraded_graph)
         rspp_results = rspp_solver.find_pareto_reliable_paths(
-            source="HQ_Chennai",
-            target="WH_30_Nagercoil",
+            source=src_node,
+            target=tgt_node,
             alpha_min_reliability=0.30
         )
         primary_solutions = rspp_results.get("pareto_solutions", [])
@@ -317,8 +320,8 @@ class SimulationOrchestrator:
         if not primary_solutions:
             for fallback_alpha in [0.15, 0.05, 0.01, 0.0001]:
                 rspp_fallback = rspp_solver.find_pareto_reliable_paths(
-                    source="HQ_Chennai",
-                    target="WH_30_Nagercoil",
+                    source=src_node,
+                    target=tgt_node,
                     alpha_min_reliability=fallback_alpha
                 )
                 primary_solutions = rspp_fallback.get("pareto_solutions", [])

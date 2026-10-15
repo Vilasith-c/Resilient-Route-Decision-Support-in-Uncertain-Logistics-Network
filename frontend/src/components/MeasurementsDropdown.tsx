@@ -10,6 +10,7 @@ interface MeasurementsDropdownProps {
   isOpen?: boolean;
   onToggle?: () => void;
   onClose?: () => void;
+  theme?: 'light' | 'dark';
 }
 
 export const MeasurementsDropdown: React.FC<MeasurementsDropdownProps> = ({
@@ -20,9 +21,11 @@ export const MeasurementsDropdown: React.FC<MeasurementsDropdownProps> = ({
   isOpen: controlledIsOpen,
   onToggle,
   onClose,
+  theme = 'dark',
 }) => {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const isLight = theme === 'light';
 
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
   const toggleDropdown = () => {
@@ -73,52 +76,75 @@ export const MeasurementsDropdown: React.FC<MeasurementsDropdownProps> = ({
 
   // Percentage for CSS custom gradient tracks (min 10km to max 150km for radius)
   const radiusPercent = Math.min(100, Math.max(0, ((hazard.radius_km - 10) / (150 - 10)) * 100));
+  const trackBgColor = isLight ? '#cbd5e1' : '#334155';
 
   return (
     <div className="relative inline-block select-none" ref={dropdownRef}>
       {/* 
         Ventusky-styled Capsule Button for Measurements
-        Matches format: White circular icon badge + dark rounded capsule with text "Measurements"
+        Apple White Frosted Glass in light mode vs. Obsidian Dark Glass in dark mode
       */}
       <button
         type="button"
         onClick={toggleDropdown}
-        className="flex items-center h-10 pl-1 pr-3.5 rounded-full bg-[#1e232a]/95 hover:bg-[#252b34] active:scale-[0.98] border border-slate-700/60 shadow-xl transition-all duration-200 cursor-pointer group backdrop-blur-md"
+        className={`flex items-center h-10 pl-1 pr-3.5 rounded-full active:scale-[0.98] shadow-xl transition-all duration-200 cursor-pointer group backdrop-blur-2xl ${
+          isLight
+            ? 'bg-white/80 hover:bg-white/95 border border-slate-300/70 text-slate-900'
+            : 'bg-[#1e232a]/95 hover:bg-[#252b34] border border-slate-700/60 text-white'
+        }`}
         title="Adjust Hazard Measurements (Radius & Intensity)"
       >
-        {/* Left White Circular Icon Badge */}
-        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-md shrink-0">
+        {/* Left Circular Icon Badge */}
+        <div
+          className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md shrink-0 ${
+            isLight ? 'bg-slate-100 border border-slate-200/90' : 'bg-white'
+          }`}
+        >
           <SlidersHorizontal className="w-4.5 h-4.5 text-blue-600" strokeWidth={2.2} />
         </div>
 
         {/* Label: Measurements + dynamic values badge */}
         <div className="flex items-center gap-2 ml-2.5">
-          <span className="font-bold text-white text-[13px] tracking-tight">
+          <span className={`font-bold text-[13px] tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
             Measurements
           </span>
 
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-sky-950/80 text-sky-400 border border-sky-800/60 font-semibold tracking-wider">
+          <span
+            className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-semibold tracking-wider ${
+              isLight
+                ? 'bg-sky-100 text-sky-800 border border-sky-300/80 shadow-xs'
+                : 'bg-sky-950/80 text-sky-400 border border-sky-800/60'
+            }`}
+          >
             {hazard.radius_km} km &bull; {intensityPercent}%
           </span>
         </div>
 
         {/* Dropdown Chevron */}
         <ChevronDown
-          className={`w-3.5 h-3.5 ml-2 text-slate-400 group-hover:text-white transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-white' : ''
-          }`}
+          className={`w-3.5 h-3.5 ml-2 transition-transform duration-200 ${
+            isLight
+              ? 'text-slate-500 group-hover:text-slate-900'
+              : 'text-slate-400 group-hover:text-white'
+          } ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
       {/* Dropdown Menu Overlay */}
       {isOpen && (
-        <div className="absolute top-12 left-0 z-[1100] w-84 bg-[#181d24]/98 backdrop-blur-xl border border-slate-700/80 rounded-2xl shadow-2xl p-3.5 text-slate-200 animate-in fade-in slide-in-from-top-2 duration-150">
-          <div className="pb-2.5 mb-3 border-b border-slate-800/80 flex items-center justify-between">
+        <div
+          className={`absolute top-12 left-0 z-[1100] w-84 backdrop-blur-2xl rounded-2xl shadow-2xl p-3.5 animate-in fade-in slide-in-from-top-2 duration-150 ${
+            isLight
+              ? 'bg-white/90 border border-slate-300/80 text-slate-800'
+              : 'bg-[#181d24]/98 border border-slate-700/80 text-slate-200'
+          }`}
+        >
+          <div className={`pb-2.5 mb-3 border-b flex items-center justify-between ${isLight ? 'border-slate-200/90' : 'border-slate-800/80'}`}>
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <span className={`text-[11px] font-bold uppercase tracking-wider ${isLight ? 'text-slate-800' : 'text-slate-400'}`}>
                 Hazard Measurements
               </span>
-              <p className="text-[10px] text-slate-500">
+              <p className={`text-[10px] ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>
                 Calibrate spatial perimeter & disruption impact
               </p>
             </div>
@@ -129,7 +155,11 @@ export const MeasurementsDropdown: React.FC<MeasurementsDropdownProps> = ({
                 handleIntensityChange(0.75);
               }}
               title="Reset measurements to standard defaults"
-              className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-slate-200 px-1.5 py-0.5 rounded hover:bg-slate-800 transition cursor-pointer"
+              className={`flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded transition cursor-pointer ${
+                isLight
+                  ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+              }`}
             >
               <RotateCcw className="w-3 h-3" />
               <span>Reset</span>
@@ -140,13 +170,13 @@ export const MeasurementsDropdown: React.FC<MeasurementsDropdownProps> = ({
             {/* 1. Radius Slider */}
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-400 font-medium">Radius:</span>
-                <span className="font-mono font-bold text-slate-100 text-sm">
-                  {hazard.radius_km} <span className="text-xs font-normal text-slate-400">km</span>
+                <span className={`font-medium ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Radius:</span>
+                <span className={`font-mono font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  {hazard.radius_km} <span className={`text-xs font-normal ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>km</span>
                 </span>
               </div>
 
-              {/* Slider Track conforming to reference image style */}
+              {/* Slider Track */}
               <div className="relative flex items-center my-1">
                 <input
                   type="range"
@@ -156,7 +186,7 @@ export const MeasurementsDropdown: React.FC<MeasurementsDropdownProps> = ({
                   value={hazard.radius_km}
                   onChange={(e) => handleRadiusChange(Number(e.target.value))}
                   style={{
-                    background: `linear-gradient(to right, #f43f5e 0%, #f43f5e ${radiusPercent}%, #e2e8f0 ${radiusPercent}%, #e2e8f0 100%)`,
+                    background: `linear-gradient(to right, #f43f5e 0%, #f43f5e ${radiusPercent}%, ${trackBgColor} ${radiusPercent}%, ${trackBgColor} 100%)`,
                   }}
                   className="w-full h-2 rounded-full appearance-none cursor-pointer accent-rose-500 focus:outline-none shadow-inner"
                 />
@@ -171,7 +201,11 @@ export const MeasurementsDropdown: React.FC<MeasurementsDropdownProps> = ({
                     onClick={() => handleRadiusChange(val)}
                     className={`flex-1 py-1 rounded-md text-[10px] font-mono transition cursor-pointer ${
                       hazard.radius_km === val
-                        ? 'bg-rose-500/25 border border-rose-500/60 text-rose-300 font-bold'
+                        ? isLight
+                          ? 'bg-rose-100 border border-rose-400 text-rose-800 font-bold shadow-xs'
+                          : 'bg-rose-500/25 border border-rose-500/60 text-rose-300 font-bold'
+                        : isLight
+                        ? 'bg-slate-100 hover:bg-slate-200/80 text-slate-700 border border-slate-200/90'
                         : 'bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700/50'
                     }`}
                   >
@@ -184,13 +218,13 @@ export const MeasurementsDropdown: React.FC<MeasurementsDropdownProps> = ({
             {/* 2. Intensity Slider */}
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-400 font-medium">Intensity:</span>
-                <span className="font-mono font-bold text-slate-100 text-sm">
+                <span className={`font-medium ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Intensity:</span>
+                <span className={`font-mono font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                   {intensityPercent}%
                 </span>
               </div>
 
-              {/* Slider Track conforming to reference image style */}
+              {/* Slider Track */}
               <div className="relative flex items-center my-1">
                 <input
                   type="range"
@@ -200,7 +234,7 @@ export const MeasurementsDropdown: React.FC<MeasurementsDropdownProps> = ({
                   value={hazard.intensity}
                   onChange={(e) => handleIntensityChange(Number(e.target.value))}
                   style={{
-                    background: `linear-gradient(to right, #f43f5e 0%, #f43f5e ${intensityPercent}%, #e2e8f0 ${intensityPercent}%, #e2e8f0 100%)`,
+                    background: `linear-gradient(to right, #f43f5e 0%, #f43f5e ${intensityPercent}%, ${trackBgColor} ${intensityPercent}%, ${trackBgColor} 100%)`,
                   }}
                   className="w-full h-2 rounded-full appearance-none cursor-pointer accent-rose-500 focus:outline-none shadow-inner"
                 />
@@ -220,7 +254,11 @@ export const MeasurementsDropdown: React.FC<MeasurementsDropdownProps> = ({
                     onClick={() => handleIntensityChange(item.val)}
                     className={`flex-1 py-1 rounded-md text-[10px] font-mono transition cursor-pointer ${
                       Math.abs(hazard.intensity - item.val) < 0.03
-                        ? 'bg-rose-500/25 border border-rose-500/60 text-rose-300 font-bold'
+                        ? isLight
+                          ? 'bg-rose-100 border border-rose-400 text-rose-800 font-bold shadow-xs'
+                          : 'bg-rose-500/25 border border-rose-500/60 text-rose-300 font-bold'
+                        : isLight
+                        ? 'bg-slate-100 hover:bg-slate-200/80 text-slate-700 border border-slate-200/90'
                         : 'bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700/50'
                     }`}
                   >
@@ -233,7 +271,7 @@ export const MeasurementsDropdown: React.FC<MeasurementsDropdownProps> = ({
 
           {/* Direct Run Simulation Action in Dropdown */}
           {onApplyHazard && (
-            <div className="pt-3 mt-3 border-t border-slate-800/80">
+            <div className={`pt-3 mt-3 border-t ${isLight ? 'border-slate-200/90' : 'border-slate-800/80'}`}>
               <button
                 type="button"
                 onClick={() => {

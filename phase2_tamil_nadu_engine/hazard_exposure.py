@@ -39,6 +39,8 @@ class HazardInput(BaseModel):
     radius_km: float = Field(default=50.0, gt=0.0, le=300.0, description="Hazard radius of effect in kilometers")
     intensity: float = Field(default=0.70, ge=0.0, le=1.0, description="Normalized intensity [0.0, 1.0] (0-100%)")
     time_horizon: int = Field(default=10, ge=1, le=24, description="Simulation temporal horizon (hours)")
+    source: str = Field(default="HQ_Chennai", description="Corridor origin node ID")
+    target: str = Field(default="HQ_Madurai", description="Corridor destination node ID")
 
 
 class NodeExposureResult(BaseModel):

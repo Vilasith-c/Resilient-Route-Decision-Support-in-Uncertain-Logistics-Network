@@ -9,8 +9,10 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-import networkx as nx
-from pgmpy.models import BayesianNetwork
+try:
+    from pgmpy.models import DiscreteBayesianNetwork as BayesianNetwork
+except ImportError:
+    from pgmpy.models import BayesianNetwork
 
 from model_layer import (
     graph_builder,

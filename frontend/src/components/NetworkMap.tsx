@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
-import { MapContainer, TileLayer, CircleMarker, Marker, Polyline, Popup, Circle, useMapEvents, ZoomControl } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Marker, Polyline, Popup, Circle, useMapEvents, useMap } from 'react-leaflet';
 import type { LatLngExpression } from 'leaflet';
 import type { NetworkResponse, GeoJSONPointFeature, GeoJSONLineFeature, HazardInput } from '../types/network';
 
@@ -13,6 +13,9 @@ interface NetworkMapProps {
   highlightedRouteNodes?: string[];
   nodeExposures?: Record<string, number>;
   nodeStates?: Record<string, string>;
+  basemap?: 'dark' | 'street' | 'satellite';
+  onBasemapChange?: (bm: 'dark' | 'street' | 'satellite') => void;
+  theme?: 'light' | 'dark';
 }
 
 // Center of Tamil Nadu (approx Trichy coordinates)
@@ -46,6 +49,91 @@ function MapEventsHandler({
   return null;
 }
 
+function MapFloatingControls({ isLight }: { isLight: boolean }) {
+  const map = useMap();
+  return (
+    <div
+      className={`absolute bottom-28 right-4 z-[1000] flex flex-col items-center gap-1 p-1 rounded-xl backdrop-blur-xl border shadow-xl font-mono select-none pointer-events-auto ${
+        isLight
+          ? 'bg-white/90 border-slate-300/80 text-slate-800'
+          : 'bg-slate-900/85 border-slate-700/60 text-slate-200'
+      }`}
+    >
+      <button
+        type="button"
+        onClick={() => map.zoomIn()}
+        className={`w-9 h-8 flex items-center justify-center rounded-lg font-bold text-base transition-colors ${
+          isLight
+            ? 'hover:bg-slate-200/80 text-slate-800'
+            : 'hover:bg-slate-800 text-slate-200 hover:text-white'
+        }`}
+        title="Zoom In"
+      >
+        +
+      </button>
+      <button
+        type="button"
+        onClick={() => map.zoomOut()}
+        className={`w-9 h-8 flex items-center justify-center rounded-lg font-bold text-base transition-colors ${
+          isLight
+            ? 'hover:bg-slate-200/80 text-slate-800'
+            : 'hover:bg-slate-800 text-slate-200 hover:text-white'
+        }`}
+        title="Zoom Out"
+      >
+        -
+      </button>
+      <div className={`w-7 h-[1px] my-0.5 ${isLight ? 'bg-slate-300' : 'bg-slate-700/80'}`} />
+      <button
+        type="button"
+        onClick={() => map.setView(TN_CENTER, DEFAULT_ZOOM, { animate: true })}
+        className={`px-2 py-1 text-[11px] font-sans font-medium rounded-lg transition-colors tracking-tight whitespace-nowrap ${
+          isLight
+            ? 'hover:bg-slate-200/80 text-slate-700 hover:text-sky-600'
+            : 'hover:bg-slate-800 text-slate-300 hover:text-sky-300'
+        }`}
+        title="Recenter Tamil Nadu Network"
+      >
+        Recenter
+      </button>
+    </div>
+  );
+}
+
+function RouteBoundsFitter({
+  routeNodes,
+  nodeCoordsMap,
+}: {
+  routeNodes: string[];
+  nodeCoordsMap: Map<string, [number, number]>;
+}) {
+  const map = useMap();
+  const prevNodesRef = useRef<string>('');
+
+  useEffect(() => {
+    if (routeNodes.length < 2) return;
+    const key = `${routeNodes[0]}->${routeNodes[routeNodes.length - 1]}`;
+    if (key !== prevNodesRef.current) {
+      prevNodesRef.current = key;
+      const latLngs: [number, number][] = [];
+      for (const nid of routeNodes) {
+        const c = nodeCoordsMap.get(nid);
+        if (c) latLngs.push([c[1], c[0]]);
+      }
+      if (latLngs.length >= 2) {
+        const bounds = L.latLngBounds(latLngs);
+        map.flyToBounds(bounds, {
+          padding: [70, 70],
+          maxZoom: 9,
+          duration: 1.0,
+        });
+      }
+    }
+  }, [routeNodes, nodeCoordsMap, map]);
+
+  return null;
+}
+
 export const NetworkMap: React.FC<NetworkMapProps> = ({
   network,
   selectedNode,
@@ -55,6 +143,9 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
   highlightedRouteNodes = [],
   nodeExposures = {},
   nodeStates = {},
+  basemap,
+  onBasemapChange,
+  theme,
 }) => {
   const [currentZoom, setCurrentZoom] = useState<number>(DEFAULT_ZOOM);
 
@@ -307,6 +398,79 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
     return { nodeFeatures: nodes, lineFeatures: lines };
   }, [network]);
 
+  // Index of node coordinates: node_id -> [lon, lat]
+  const nodeCoordsMap = useMemo(() => {
+    const map = new Map<string, [number, number]>();
+    if (network?.geojson?.features) {
+      for (const f of network.geojson.features) {
+        if (f.geometry.type === 'Point') {
+          const pf = f as GeoJSONPointFeature;
+          map.set(pf.properties.id, pf.geometry.coordinates);
+        }
+      }
+    }
+    return map;
+  }, [network]);
+
+  // Google Maps-style OSRM road geometry state
+  const [osrmRoadPositions, setOsrmRoadPositions] = useState<[number, number][]>([]);
+
+  // Fetch curved driving highway geometry via OSRM when active route changes
+  useEffect(() => {
+    // Immediately clear previous road polyline to prevent ghost corridor display
+    setOsrmRoadPositions([]);
+
+    if (highlightedRouteNodes.length < 2) {
+      return;
+    }
+
+    const coords: [number, number][] = [];
+    for (const nid of highlightedRouteNodes) {
+      const c = nodeCoordsMap.get(nid);
+      if (c) coords.push(c);
+    }
+
+    if (coords.length < 2) {
+      setOsrmRoadPositions([]);
+      return;
+    }
+
+    // Topological straight-line fallback coordinates: [lat, lon]
+    const fallbackCoords: [number, number][] = coords.map(([lon, lat]) => [lat, lon]);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2500);
+
+    const coordsParam = coords.map(([lon, lat]) => `${lon},${lat}`).join(';');
+    const url = `https://router.project-osrm.org/route/v1/driving/${coordsParam}?overview=full&geometries=geojson`;
+
+    fetch(url, { signal: controller.signal })
+      .then((res) => {
+        if (!res.ok) throw new Error(`OSRM status ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        clearTimeout(timeoutId);
+        if (data?.routes?.[0]?.geometry?.coordinates) {
+          const roadPoints: [number, number][] = data.routes[0].geometry.coordinates.map(
+            ([lon, lat]: [number, number]) => [lat, lon]
+          );
+          setOsrmRoadPositions(roadPoints);
+        } else {
+          setOsrmRoadPositions(fallbackCoords);
+        }
+      })
+      .catch(() => {
+        clearTimeout(timeoutId);
+        setOsrmRoadPositions(fallbackCoords);
+      });
+
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [highlightedRouteNodes, nodeCoordsMap]);
+
   // Color generator based on node type, hazard exposure, and DBN state
   const getNodeColor = (type: string, exposure: number = 0, state?: string, isHighlighted: boolean = false) => {
     if (isHighlighted) return '#38bdf8'; // Bright cyan for active route
@@ -338,15 +502,18 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
   };
 
   // Basemap style options (100% Free, NO API Keys, NO Watermarks)
-  const [basemap, setBasemap] = React.useState<'dark' | 'osm' | 'satellite'>('dark');
+  const [internalBasemap, setInternalBasemap] = React.useState<'dark' | 'street' | 'satellite'>('dark');
+  const activeBasemap = basemap !== undefined ? basemap : internalBasemap;
+  const setBasemap = onBasemapChange || setInternalBasemap;
+  const isLight = theme !== undefined ? theme === 'light' : activeBasemap === 'street';
 
-  const BASEMAPS = {
+  const BASEMAPS: Record<'dark' | 'street' | 'satellite', { url: string; attribution: string; label: string }> = {
     dark: {
       url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
       attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
       label: 'Dark Canvas',
     },
-    osm: {
+    street: {
       url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       label: 'Street (OSM)',
@@ -359,7 +526,7 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full rounded-xl overflow-hidden shadow-2xl border border-slate-800">
+    <div className={`relative w-full h-full rounded-xl overflow-hidden shadow-2xl border transition-colors ${isLight ? 'border-slate-300/80' : 'border-slate-800'}`}>
       <MapContainer
         center={TN_CENTER}
         zoom={DEFAULT_ZOOM}
@@ -367,18 +534,19 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
         scrollWheelZoom={true}
         zoomControl={false}
       >
-        <ZoomControl position="topright" />
         {/* Active Free Public Tile Layer */}
         <TileLayer
-          key={basemap}
-          attribution={BASEMAPS[basemap].attribution}
-          url={BASEMAPS[basemap].url}
+          key={activeBasemap}
+          attribution={BASEMAPS[activeBasemap].attribution}
+          url={BASEMAPS[activeBasemap].url}
           maxZoom={19}
         />
 
         <MapEventsHandler onMapClick={onMapClick} onZoomChange={setCurrentZoom} />
+        <MapFloatingControls isLight={isLight} />
+        <RouteBoundsFitter routeNodes={highlightedRouteNodes} nodeCoordsMap={nodeCoordsMap} />
 
-        {/* 1. Macro Corridor Edges (LineStrings) */}
+        {/* 1. Macro Corridor Edges (Subtle dashed highway background network) */}
         {lineFeatures.map((line) => {
           const [uCoord, vCoord] = line.geometry.coordinates;
           const positions: [number, number][] = [
@@ -386,25 +554,15 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
             [vCoord[1], vCoord[0]],
           ];
 
-          const isRouteEdge =
-            highlightedRouteNodes.length > 1 &&
-            highlightedRouteNodes.some((node, i) => {
-              const next = highlightedRouteNodes[i + 1];
-              return (
-                (line.properties.source === node && line.properties.target === next) ||
-                (line.properties.target === node && line.properties.source === next)
-              );
-            });
-
           return (
             <Polyline
               key={line.id}
               positions={positions}
               pathOptions={{
-                color: isRouteEdge ? '#38bdf8' : '#64748b',
-                weight: isRouteEdge ? 4 : 2,
-                opacity: isRouteEdge ? 0.95 : 0.45,
-                dashArray: isRouteEdge ? undefined : '3, 4',
+                color: '#475569',
+                weight: 1.5,
+                opacity: 0.35,
+                dashArray: '4, 6',
               }}
             >
               <Popup className="text-slate-900">
@@ -420,6 +578,21 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
             </Polyline>
           );
         })}
+
+        {/* 1b. Active Resilient Route: Glowing Google Maps-Style Highway Polyline */}
+        {osrmRoadPositions.length > 1 && (
+          <Polyline
+            positions={osrmRoadPositions}
+            pathOptions={{
+              color: '#38bdf8',
+              weight: 5,
+              opacity: 0.95,
+              lineCap: 'round',
+              lineJoin: 'round',
+              className: 'route-glowing-highway',
+            }}
+          />
+        )}
 
         {/* 2. Active Hazard Circle (if placed) */}
         {activeHazard && (
@@ -650,15 +823,25 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
       </MapContainer>
 
       {/* Basemap Style Switcher (Top-Right) */}
-      <div className="absolute top-4 right-4 z-[1000] bg-slate-900/90 backdrop-blur-md p-1 rounded-lg border border-slate-700/60 shadow-xl flex gap-1 pointer-events-auto">
+      <div
+        className={`absolute top-4 right-4 z-[1000] p-1 rounded-lg backdrop-blur-md border shadow-xl flex gap-1 pointer-events-auto transition-colors ${
+          isLight
+            ? 'bg-white/85 border-slate-300/80 shadow-lg'
+            : 'bg-slate-900/90 border-slate-700/60'
+        }`}
+      >
         {(Object.keys(BASEMAPS) as Array<keyof typeof BASEMAPS>).map((key) => (
           <button
             key={key}
             type="button"
             onClick={() => setBasemap(key)}
             className={`px-2.5 py-1 text-xs rounded-md font-medium transition ${
-              basemap === key
-                ? 'bg-sky-500 text-slate-950 font-semibold shadow'
+              activeBasemap === key
+                ? isLight
+                  ? 'bg-sky-600 text-white font-semibold shadow'
+                  : 'bg-sky-500 text-slate-950 font-semibold shadow'
+                : isLight
+                ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/80'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
             }`}
           >
@@ -668,8 +851,16 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
       </div>
 
       {/* Map Legend Overlay (Positioned above bottom timeline) */}
-      <div className="absolute bottom-26 left-4 z-[1000] bg-slate-900/90 backdrop-blur-md px-3 py-2 rounded-lg border border-slate-700/60 text-xs text-slate-200 shadow-xl pointer-events-auto">
-        <div className="font-semibold text-slate-300 mb-1.5 text-[11px] uppercase tracking-wider">Topology Legend</div>
+      <div
+        className={`absolute bottom-26 left-4 z-[1000] px-3 py-2 rounded-lg backdrop-blur-md border text-xs shadow-xl pointer-events-auto transition-colors ${
+          isLight
+            ? 'bg-white/85 border-slate-300/80 text-slate-800'
+            : 'bg-slate-900/90 border-slate-700/60 text-slate-200'
+        }`}
+      >
+        <div className={`font-semibold mb-1.5 text-[11px] uppercase tracking-wider ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+          Topology Legend
+        </div>
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <img src="/hq-icon.png" alt="HQ" className="w-3.5 h-3.5 object-contain" />
@@ -683,9 +874,9 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
             <img src="/warehouse-icon.png" alt="WH" className="w-3.5 h-3.5 object-contain" />
             <span>Warehouses (30)</span>
           </div>
-          <div className="flex items-center gap-2 pt-1 border-t border-slate-800">
+          <div className={`flex items-center gap-2 pt-1 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
             <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-            <span className="text-red-300">Hazard Exposure</span>
+            <span className={isLight ? 'text-red-600 font-medium' : 'text-red-300'}>Hazard Exposure</span>
           </div>
         </div>
       </div>

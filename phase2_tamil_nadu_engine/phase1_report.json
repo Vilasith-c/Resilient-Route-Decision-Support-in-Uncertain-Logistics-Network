@@ -1,19 +1,19 @@
 {
-  "timestamp": "2026-10-05 19:10:54",
+  "timestamp": "2026-10-08 11:59:38",
   "overall_status": "ALL PASS",
   "phase1_benchmark_summary": {
     "task1_dbn_inference": {
       "status": "PASS",
-      "pgmpy_total_time_ms": 24.22,
-      "pgmpy_avg_frame_time_ms": 2.2,
+      "pgmpy_total_time_ms": 25.45,
+      "pgmpy_avg_frame_time_ms": 2.31,
       "threshold_ms": 1500.0,
-      "numpy_fallback_time_ms": 0.23,
-      "numpy_speedup": 105.1
+      "numpy_fallback_time_ms": 0.811,
+      "numpy_speedup": 31.4
     },
     "task2_rspp_astar": {
       "status": "PASS",
       "primary_pair": "HQ_Chennai -> WH_30_Nagercoil",
-      "execution_time_ms": 0.65,
+      "execution_time_ms": 0.53,
       "threshold_ms": 300.0,
       "paths_evaluated": 140,
       "paths_pruned_fsd": 46,

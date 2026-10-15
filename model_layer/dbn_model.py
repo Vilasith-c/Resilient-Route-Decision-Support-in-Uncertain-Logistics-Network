@@ -33,7 +33,10 @@ from typing import Any
 
 import networkx as nx
 import numpy as np
-from pgmpy.models import BayesianNetwork
+try:
+    from pgmpy.models import DiscreteBayesianNetwork as BayesianNetwork
+except ImportError:
+    from pgmpy.models import BayesianNetwork
 from pgmpy.factors.discrete import TabularCPD
 
 from . import delay_distribution

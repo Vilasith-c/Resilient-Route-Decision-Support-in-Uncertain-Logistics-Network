@@ -36,7 +36,10 @@ if not hasattr(np, 'sometrue'):
     np.sometrue = np.any
 
 import networkx as nx
-from pgmpy.models import BayesianNetwork
+try:
+    from pgmpy.models import DiscreteBayesianNetwork as BayesianNetwork
+except ImportError:
+    from pgmpy.models import BayesianNetwork
 from pgmpy.factors.discrete import TabularCPD
 from pgmpy.inference import VariableElimination
 

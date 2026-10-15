@@ -132,13 +132,17 @@ export const App: React.FC = () => {
     };
   }, [isPlaying, timelineResult]);
 
-  // Map Click Handler: Relocates hazard epicenter
-  const handleMapClick = (lat: number, lon: number) => {
-    setHazard((prev) => ({
-      ...prev,
+  // Map Click Handler: Relocates hazard epicenter and triggers re-simulation
+  const handleMapClick = async (lat: number, lon: number) => {
+    const updated: HazardInput = {
+      ...hazard,
       latitude: Number(lat.toFixed(4)),
       longitude: Number(lon.toFixed(4)),
-    }));
+      source: sourceNode,
+      target: targetNode,
+    };
+    setHazard(updated);
+    await handleApplyHazard(updated);
   };
 
   // Clear Hazard

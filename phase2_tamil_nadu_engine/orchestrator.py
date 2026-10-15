@@ -41,6 +41,7 @@ from delay_distribution import (
 )
 from phase1_benchmark import (
     TN_NODES,
+    NODE_ALIASES,
     build_tamil_nadu_network,
     RSPPAStarSolver,
     haversine_distance_km,
@@ -303,8 +304,14 @@ class SimulationOrchestrator:
         # -------------------------------------------------------------------
         # STAGE 6: RSPP-A* Dynamic Re-routing across Pareto Frontiers
         # -------------------------------------------------------------------
-        src_node = hazard.source if (getattr(hazard, "source", None) and hazard.source in self.base_graph) else "HQ_Chennai"
-        tgt_node = hazard.target if (getattr(hazard, "target", None) and hazard.target in self.base_graph) else "HQ_Madurai"
+        raw_src = getattr(hazard, "source", None) or "HQ_Chennai"
+        raw_tgt = getattr(hazard, "target", None) or "HQ_Madurai"
+        src_node = NODE_ALIASES.get(raw_src, raw_src)
+        tgt_node = NODE_ALIASES.get(raw_tgt, raw_tgt)
+        if src_node not in self.base_graph:
+            src_node = "HQ_Chennai"
+        if tgt_node not in self.base_graph:
+            tgt_node = "HQ_Madurai"
 
         rspp_solver = RSPPAStarSolver(degraded_graph)
         rspp_results = rspp_solver.find_pareto_reliable_paths(
@@ -318,7 +325,7 @@ class SimulationOrchestrator:
         # progressively search with lower alpha thresholds so the engine always provides
         # the best-effort resilient route rather than returning empty solutions.
         if not primary_solutions:
-            for fallback_alpha in [0.15, 0.05, 0.01, 0.0001]:
+            for fallback_alpha in [0.15, 0.05, 0.01, 0.0001, 0.0]:
                 rspp_fallback = rspp_solver.find_pareto_reliable_paths(
                     source=src_node,
                     target=tgt_node,
@@ -327,6 +334,71 @@ class SimulationOrchestrator:
                 primary_solutions = rspp_fallback.get("pareto_solutions", [])
                 if primary_solutions:
                     break
+
+        # Guaranteed topological fallback: if extreme disaster isolates corridors
+        if not primary_solutions and nx.has_path(degraded_graph, src_node, tgt_node):
+            shortest_path = nx.shortest_path(degraded_graph, src_node, tgt_node, weight="travel_time_hr")
+            tt = sum(degraded_graph[u][v]["travel_time_hr"] for u, v in zip(shortest_path[:-1], shortest_path[1:]))
+            rel = 1.0
+            for u, v in zip(shortest_path[:-1], shortest_path[1:]):
+                rel *= degraded_graph[u][v]["on_time_prob"]
+            fallback_legs = [
+                {
+                    "from": u,
+                    "to": v,
+                    "distance_km": degraded_graph[u][v]["distance_km"],
+                    "travel_time_hr": degraded_graph[u][v]["travel_time_hr"],
+                    "on_time_prob": degraded_graph[u][v]["on_time_prob"],
+                    "disruption_prob": degraded_graph[u][v]["disruption_prob"],
+                }
+                for u, v in zip(shortest_path[:-1], shortest_path[1:])
+            ]
+            primary_solutions = [{
+                "route": " -> ".join(shortest_path),
+                "path_nodes": shortest_path,
+                "travel_time_hr": round(tt, 2),
+                "on_time_reliability_alpha": round(rel, 4),
+                "disruption_prob": round(1.0 - rel, 4),
+                "hops": len(shortest_path) - 1,
+                "legs": fallback_legs,
+                "path_coordinates": [[TN_NODES[n]["lat"], TN_NODES[n]["lon"]] for n in shortest_path if n in TN_NODES],
+            }]
+
+        # -------------------------------------------------------------------
+        # Multi-Attribute Decision Ranking for Pareto Solutions:
+        # When direct path incurs elevated disruption shock (>= 35%), prioritize
+        # resilient detour alternatives that preserve high on-time reliability.
+        # -------------------------------------------------------------------
+        if len(primary_solutions) > 1:
+            min_tt = min(s["travel_time_hr"] for s in primary_solutions)
+            fastest_sol = min(primary_solutions, key=lambda s: s["travel_time_hr"])
+            is_fastest_disrupted = fastest_sol["disruption_prob"] >= 0.35
+
+            # Dynamic trade-off coefficient: if fastest path is degraded, reward reliability detour
+            beta = 0.40 if is_fastest_disrupted else 0.80
+
+            for s in primary_solutions:
+                time_penalty = beta * ((s["travel_time_hr"] - min_tt) / max(min_tt, 0.01))
+                s["resilience_utility"] = round(s["on_time_reliability_alpha"] - time_penalty, 4)
+
+                # Assign strategy tags for decision-support UI
+                if s["travel_time_hr"] == min_tt:
+                    if s["disruption_prob"] >= 0.35:
+                        s["strategy_tag"] = f"Direct Route (Severe Shock: {int(s['disruption_prob']*100)}% Risk)"
+                    else:
+                        s["strategy_tag"] = "Direct Optimal Corridor"
+                else:
+                    if s["on_time_reliability_alpha"] > fastest_sol["on_time_reliability_alpha"]:
+                        gain = int((s["on_time_reliability_alpha"] - fastest_sol["on_time_reliability_alpha"]) * 100)
+                        s["strategy_tag"] = f"Resilient Detour (Bypasses Hazard: +{gain}% Reliability)"
+                    else:
+                        s["strategy_tag"] = "Alternative Strategic Corridor"
+
+            primary_solutions.sort(key=lambda s: s.get("resilience_utility", 0.0), reverse=True)
+            primary_solutions[0]["is_recommended"] = True
+        elif primary_solutions:
+            primary_solutions[0]["strategy_tag"] = "Single Viable Corridor"
+            primary_solutions[0]["is_recommended"] = True
 
         # Bottleneck Identification
         hub_risks: Dict[str, float] = {}

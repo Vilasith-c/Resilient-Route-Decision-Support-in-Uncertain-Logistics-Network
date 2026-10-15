@@ -84,6 +84,15 @@ export interface HazardInput {
   target?: string;
 }
 
+export interface RouteLeg {
+  from: string;
+  to: string;
+  distance_km: number;
+  travel_time_hr: number;
+  on_time_prob?: number;
+  disruption_prob?: number;
+}
+
 export interface CandidateRoute {
   route: string;
   path_nodes: string[];
@@ -91,6 +100,11 @@ export interface CandidateRoute {
   on_time_reliability_alpha: number;
   disruption_prob: number;
   hops: number;
+  legs?: RouteLeg[];
+  path_coordinates?: [number, number][];
+  strategy_tag?: string;
+  resilience_utility?: number;
+  is_recommended?: boolean;
 }
 
 export interface JiangResilienceScorecard {

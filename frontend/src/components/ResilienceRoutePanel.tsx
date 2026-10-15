@@ -24,12 +24,53 @@ const CORRIDOR_OPTIONS = [
     ],
   },
   {
-    group: 'Major Terminals',
+    group: 'Regional Transit Hubs',
     items: [
-      { id: 'Hub_Tiruchirappalli', label: 'Hub Tiruchirappalli (Trichy)' },
-      { id: 'Hub_Salem', label: 'Hub Salem (Central Transit)' },
-      { id: 'Hub_Thoothukudi', label: 'Hub Thoothukudi (Port Terminal)' },
-      { id: 'WH_30_Nagercoil', label: 'WH 30 Nagercoil (Deep South)' },
+      { id: 'Hub_Tiruvallur', label: 'Hub Tiruvallur (North Gateway)' },
+      { id: 'Hub_Vellore', label: 'Hub Vellore (NH48 Transit)' },
+      { id: 'Hub_Salem', label: 'Hub Salem (Central Crossroads)' },
+      { id: 'Hub_Erode', label: 'Hub Erode (Textile Corridor)' },
+      { id: 'Hub_Tiruchirappalli', label: 'Hub Tiruchirappalli (Trichy Central)' },
+      { id: 'Hub_Thanjavur', label: 'Hub Thanjavur (Delta Terminal)' },
+      { id: 'Hub_Cuddalore', label: 'Hub Cuddalore (East Coast Port)' },
+      { id: 'Hub_Dindigul', label: 'Hub Dindigul (Southern Junction)' },
+      { id: 'Hub_Tirunelveli', label: 'Hub Tirunelveli (Deep South Hub)' },
+      { id: 'Hub_Thoothukudi', label: 'Hub Thoothukudi (Major Port Terminal)' },
+    ],
+  },
+  {
+    group: 'Industrial & Trade Warehouses',
+    items: [
+      { id: 'WH_01_Gummidipoondi', label: 'WH 01 Gummidipoondi (Border Depot)' },
+      { id: 'WH_02_Sriperumbudur', label: 'WH 02 Sriperumbudur (Auto Hub Depot)' },
+      { id: 'WH_03_Arakkonam', label: 'WH 03 Arakkonam (Railhead Depot)' },
+      { id: 'WH_04_Ranipet', label: 'WH 04 Ranipet (Leather Cluster)' },
+      { id: 'WH_05_Ambur', label: 'WH 05 Ambur (Trade Warehouse)' },
+      { id: 'WH_06_Tirupattur', label: 'WH 06 Tirupattur (Transit Depot)' },
+      { id: 'WH_07_Attur', label: 'WH 07 Attur (Eastern Salem Depot)' },
+      { id: 'WH_08_Mettur', label: 'WH 08 Mettur (Thermal Power Terminal)' },
+      { id: 'WH_09_Namakkal', label: 'WH 09 Namakkal (Logistics Depot)' },
+      { id: 'WH_10_Bhavani', label: 'WH 10 Bhavani (River Basin Depot)' },
+      { id: 'WH_11_Perundurai', label: 'WH 11 Perundurai (SIPCOT Depot)' },
+      { id: 'WH_12_Tiruppur', label: 'WH 12 Tiruppur (Knitwear Freight Depot)' },
+      { id: 'WH_13_Pollachi', label: 'WH 13 Pollachi (Agro Depot)' },
+      { id: 'WH_14_Udumalaipettai', label: 'WH 14 Udumalaipettai (Wind Corridor Depot)' },
+      { id: 'WH_15_Mettupalayam', label: 'WH 15 Mettupalayam (Nilgiris Gateway)' },
+      { id: 'WH_16_Manapparai', label: 'WH 16 Manapparai (Southern Trichy Depot)' },
+      { id: 'WH_17_Thuraiyur', label: 'WH 17 Thuraiyur (Northern Trichy Depot)' },
+      { id: 'WH_18_Pudukkottai', label: 'WH 18 Pudukkottai (Transit Depot)' },
+      { id: 'WH_19_Kumbakonam', label: 'WH 19 Kumbakonam (Delta Core Depot)' },
+      { id: 'WH_20_Mayiladuthurai', label: 'WH 20 Mayiladuthurai (Coastal Delta Depot)' },
+      { id: 'WH_21_Nagapattinam', label: 'WH 21 Nagapattinam (Port Terminal Depot)' },
+      { id: 'WH_22_Panruti', label: 'WH 22 Panruti (Commercial Depot)' },
+      { id: 'WH_23_Chidambaram', label: 'WH 23 Chidambaram (Delta Depot)' },
+      { id: 'WH_24_Villupuram', label: 'WH 24 Villupuram (Crossroad Depot)' },
+      { id: 'WH_25_Palani', label: 'WH 25 Palani (Hill Depot)' },
+      { id: 'WH_26_Batlagundu', label: 'WH 26 Batlagundu (Spices Warehouse)' },
+      { id: 'WH_27_Virudhunagar', label: 'WH 27 Virudhunagar (Trade Depot)' },
+      { id: 'WH_28_Kovilpatti', label: 'WH 28 Kovilpatti (Industrial Depot)' },
+      { id: 'WH_29_Tenkasi', label: 'WH 29 Tenkasi (Western Ghats Depot)' },
+      { id: 'WH_30_Nagercoil', label: 'WH 30 Nagercoil (Southernmost Gateway)' },
     ],
   },
 ];
@@ -94,9 +135,15 @@ export const ResilienceRoutePanel: React.FC<ResilienceRoutePanelProps> = ({
     return map;
   }, [network]);
 
-  // Compute route legs for stepper path breakdown
+  // Compute route legs for stepper path breakdown (prioritize backend-computed simulation legs)
   const routeLegs = useMemo(() => {
     if (!activeRoute || activeRoute.path_nodes.length === 0) return [];
+
+    // If backend provided simulation-degraded legs, use them directly
+    if (activeRoute.legs && activeRoute.legs.length > 0) {
+      return activeRoute.legs;
+    }
+
     const legs: Array<{ from: string; to: string; distance_km: number; travel_time_hr: number }> = [];
     const nodes = activeRoute.path_nodes;
     const totalHops = Math.max(1, nodes.length - 1);
@@ -413,6 +460,91 @@ export const ResilienceRoutePanel: React.FC<ResilienceRoutePanelProps> = ({
               </div>
             </div>
 
+            {/* Strategic Pareto Routing Alternatives (Interactive Decision Support) */}
+            {candidateRoutes.length > 0 && (
+              <div
+                className={`p-3 rounded-xl border space-y-2 transition-colors ${
+                  isLight
+                    ? 'bg-slate-100/80 border-slate-200/80'
+                    : 'bg-slate-900/70 border border-slate-800/80'
+                }`}
+              >
+                <div className={`flex items-center justify-between border-b pb-1.5 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+                  <span className={`text-xs font-semibold font-sans flex items-center gap-1.5 ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>
+                    <span>Pareto Routing Strategies</span>
+                    <span className="text-[10px] font-mono opacity-60">({candidateRoutes.length} Available)</span>
+                  </span>
+                  <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${isLight ? 'bg-sky-100 text-sky-800 font-medium' : 'bg-slate-800 text-sky-300'}`}>
+                    FSD Stochastic Dominance
+                  </span>
+                </div>
+
+                <div className="space-y-1.5">
+                  {candidateRoutes.map((cr, idx) => {
+                    const isSelected =
+                      activeRoute?.route === cr.route ||
+                      selectedRouteNodes.join(',') === cr.path_nodes.join(',');
+
+                    const isDetour = cr.strategy_tag?.toLowerCase().includes('detour');
+                    const isHighShock = cr.disruption_prob >= 0.35;
+
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => onSelectRoute && onSelectRoute(cr)}
+                        className={`w-full text-left p-2 rounded-xl border transition-all cursor-pointer ${
+                          isSelected
+                            ? isLight
+                              ? 'bg-sky-50/90 border-sky-500 ring-2 ring-sky-400/30 text-slate-900 shadow-sm'
+                              : 'bg-sky-950/60 border-sky-400 ring-1 ring-sky-500/40 text-slate-100 shadow-md'
+                            : isLight
+                            ? 'bg-white/80 border-slate-200 hover:border-slate-300 text-slate-800'
+                            : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-300'
+                        }`}
+                      >
+                        <div className="flex justify-between items-center text-xs font-sans">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-bold">
+                              {isDetour ? '🛡️ Strategy #' + (idx + 1) : isHighShock ? '⚡ Strategy #' + (idx + 1) : 'Corridor #' + (idx + 1)}
+                            </span>
+                            {cr.is_recommended && (
+                              <span className="text-[9px] px-1.5 py-0.2 rounded font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 uppercase">
+                                Recommended
+                              </span>
+                            )}
+                          </div>
+                          <span className="font-mono text-xs font-semibold">
+                            E[T] = {cr.travel_time_hr.toFixed(2)}h
+                          </span>
+                        </div>
+
+                        {cr.strategy_tag && (
+                          <div className={`text-[10.5px] font-medium mt-0.5 ${
+                            isDetour
+                              ? isLight ? 'text-emerald-700 font-semibold' : 'text-emerald-400 font-semibold'
+                              : isHighShock
+                              ? isLight ? 'text-amber-700 font-semibold' : 'text-amber-400 font-semibold'
+                              : isLight ? 'text-sky-700' : 'text-sky-400'
+                          }`}>
+                            {cr.strategy_tag}
+                          </div>
+                        )}
+
+                        <div className={`flex justify-between items-center text-[10px] font-mono mt-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                          <span>Reliability: {(cr.on_time_reliability_alpha * 100).toFixed(1)}%</span>
+                          <span className={isHighShock ? (isLight ? 'text-rose-600 font-semibold' : 'text-rose-400 font-semibold') : ''}>
+                            Risk: {(cr.disruption_prob * 100).toFixed(1)}%
+                          </span>
+                          <span>{cr.hops} Hops</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Fat-Tailed Delay Distribution Plot */}
             <div
               className={`p-3 rounded-xl border space-y-1.5 transition-colors ${
@@ -559,54 +691,6 @@ export const ResilienceRoutePanel: React.FC<ResilienceRoutePanelProps> = ({
                 </div>
               )}
             </div>
-
-            {/* Non-Dominated Pareto Candidate Routes */}
-            {candidateRoutes.length > 0 && (
-              <div className="space-y-2">
-                <div className={`text-xs font-sans uppercase tracking-wide ${isLight ? 'text-slate-600 font-semibold' : 'text-slate-400'}`}>
-                  Non-Dominated Pareto Candidates ({candidateRoutes.length})
-                </div>
-                <div className="space-y-1.5">
-                  {candidateRoutes.map((cr, idx) => {
-                    const isSelected =
-                      activeRoute?.route === cr.route ||
-                      selectedRouteNodes.join(',') === cr.path_nodes.join(',');
-
-                    return (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => onSelectRoute && onSelectRoute(cr)}
-                        className={`w-full text-left p-2.5 rounded-xl border transition-all ${
-                          isSelected
-                            ? isLight
-                              ? 'bg-sky-100/90 border-sky-400 text-slate-900 shadow-sm'
-                              : 'bg-sky-950/50 border-sky-500 text-slate-100 shadow-md'
-                            : isLight
-                            ? 'bg-slate-100/80 border-slate-200 text-slate-800 hover:bg-slate-200/80'
-                            : 'bg-slate-900/50 border-slate-800 text-slate-300 hover:bg-slate-850 hover:border-slate-700'
-                        }`}
-                      >
-                        <div className="flex justify-between items-center text-xs font-sans">
-                          <span className={`font-semibold ${isLight ? 'text-sky-800' : 'text-sky-300'}`}>
-                            Alternative #{idx + 1} {idx === 0 && '(FSD Optimal)'}
-                          </span>
-                          <span className={`font-mono ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
-                            E[T] = {cr.travel_time_hr.toFixed(2)}h
-                          </span>
-                        </div>
-                        <div className={`flex justify-between items-center text-[11px] font-mono mt-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                          <span>&alpha;-Reliability: {(cr.on_time_reliability_alpha * 100).toFixed(1)}%</span>
-                          <span className={isLight ? 'text-rose-700 font-semibold' : 'text-rose-400'}>
-                            Risk: {(cr.disruption_prob * 100).toFixed(1)}%
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
           </div>
         )}
 

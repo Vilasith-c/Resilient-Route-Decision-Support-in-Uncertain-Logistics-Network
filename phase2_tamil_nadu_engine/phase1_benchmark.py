@@ -746,6 +746,35 @@ class RSPPAStarSolver:
         # Sort Pareto set by travel time
         target_pareto_labels.sort(key=lambda l: l.cumulative_time)
 
+        solutions = []
+        for sol in target_pareto_labels[:5]:
+            legs = []
+            for i in range(len(sol.path) - 1):
+                u = sol.path[i]
+                v = sol.path[i + 1]
+                edata = self.g.get_edge_data(u, v, default={})
+                legs.append({
+                    "from": u,
+                    "to": v,
+                    "distance_km": edata.get("distance_km", 0.0),
+                    "travel_time_hr": edata.get("travel_time_hr", 0.0),
+                    "on_time_prob": edata.get("on_time_prob", 0.95),
+                    "disruption_prob": edata.get("disruption_prob", 0.05),
+                })
+            solutions.append({
+                "route": " -> ".join(sol.path),
+                "path_nodes": sol.path,
+                "travel_time_hr": round(sol.cumulative_time, 2),
+                "on_time_reliability_alpha": round(sol.on_time_prob, 4),
+                "disruption_prob": round(1.0 - sol.on_time_prob, 4),
+                "hops": len(sol.path) - 1,
+                "legs": legs,
+                "path_coordinates": [
+                    [TN_NODES[n]["lat"], TN_NODES[n]["lon"]]
+                    for n in sol.path if n in TN_NODES
+                ],
+            })
+
         return {
             "source": source,
             "target": target,
@@ -756,17 +785,7 @@ class RSPPAStarSolver:
             "paths_pruned_cycle": paths_pruned_cycle,
             "total_pruned": paths_pruned_fsd + paths_pruned_alpha + paths_pruned_cycle,
             "pareto_routes_found": len(target_pareto_labels),
-            "pareto_solutions": [
-                {
-                    "route": " -> ".join(sol.path),
-                    "path_nodes": sol.path,
-                    "travel_time_hr": round(sol.cumulative_time, 2),
-                    "on_time_reliability_alpha": round(sol.on_time_prob, 4),
-                    "disruption_prob": round(1.0 - sol.on_time_prob, 4),
-                    "hops": len(sol.path) - 1,
-                }
-                for sol in target_pareto_labels[:5]  # Top 5 Pareto routes
-            ]
+            "pareto_solutions": solutions
         }
 
 

@@ -276,7 +276,7 @@ export const MeasurementsDropdown: React.FC<MeasurementsDropdownProps> = ({
                 type="button"
                 onClick={() => {
                   closeDropdown();
-                  onApplyHazard();
+                  onApplyHazard(hazard);
                 }}
                 disabled={isLoading}
                 className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-medium text-xs shadow-md transition disabled:opacity-50 cursor-pointer"

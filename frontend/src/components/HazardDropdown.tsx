@@ -11,8 +11,6 @@ import {
   AlertTriangle,
   Building2,
   Check,
-  Play,
-  Loader2,
 } from 'lucide-react';
 import type { HazardInput } from '../types/network';
 
@@ -189,14 +187,18 @@ export const HazardDropdown: React.FC<HazardDropdownProps> = ({
     HAZARD_OPTIONS[0];
 
   const handleSelectHazard = (option: HazardOption) => {
-    onChangeHazard({
+    const updated: HazardInput = {
       ...hazard,
       hazard_type: option.id,
       latitude: option.defaultLat,
       longitude: option.defaultLon,
       radius_km: option.defaultRadius,
       intensity: option.defaultIntensity,
-    });
+    };
+    onChangeHazard(updated);
+    if (onApplyHazard) {
+      onApplyHazard(updated);
+    }
     closeDropdown();
   };
 
@@ -339,32 +341,6 @@ export const HazardDropdown: React.FC<HazardDropdownProps> = ({
             })}
           </div>
 
-          {/* Direct Run Simulation Action in Dropdown */}
-          {onApplyHazard && (
-            <div className={`pt-2 border-t ${isLight ? 'border-slate-200/90' : 'border-slate-800/80'}`}>
-              <button
-                type="button"
-                onClick={() => {
-                  closeDropdown();
-                  onApplyHazard();
-                }}
-                disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-medium text-xs shadow-md transition disabled:opacity-50 cursor-pointer"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Evaluating Network Exposure...</span>
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-3.5 h-3.5 fill-current" />
-                    <span>Apply & Simulate {activeOption.name}</span>
-                  </>
-                )}
-              </button>
-            </div>
-          )}
         </div>
       )}
     </div>

@@ -415,7 +415,7 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
   // Google Maps-style OSRM road geometry state
   const [osrmRoadPositions, setOsrmRoadPositions] = useState<[number, number][]>([]);
 
-  // Fetch curved driving highway geometry via OSRM when active route changes
+    // Fetch curved driving highway geometry via OSRM when active route changes
   useEffect(() => {
     // Immediately clear previous road polyline to prevent ghost corridor display
     setOsrmRoadPositions([]);
@@ -439,23 +439,47 @@ export const NetworkMap: React.FC<NetworkMapProps> = ({
     const fallbackCoords: [number, number][] = coords.map(([lon, lat]) => [lat, lon]);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2500);
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
 
-    const coordsParam = coords.map(([lon, lat]) => `${lon},${lat}`).join(';');
-    const url = `https://router.project-osrm.org/route/v1/driving/${coordsParam}?overview=full&geometries=geojson`;
+    // Fetch road geometries for each consecutive leg pairwise.
+    // Querying pairwise avoids OSRM public server's multi-waypoint snapping bug where long legs
+    // (e.g. Chennai <-> Cuddalore) caused endpoints to be erroneously snapped 140km away!
+    const legPromises = [];
+    for (let i = 0; i < highlightedRouteNodes.length - 1; i++) {
+      const u = highlightedRouteNodes[i];
+      const v = highlightedRouteNodes[i + 1];
+      const c1 = nodeCoordsMap.get(u);
+      const c2 = nodeCoordsMap.get(v);
+      if (!c1 || !c2) continue;
 
-    fetch(url, { signal: controller.signal })
-      .then((res) => {
-        if (!res.ok) throw new Error(`OSRM status ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
+      const legFallback: [number, number][] = [
+        [c1[1], c1[0]],
+        [c2[1], c2[0]],
+      ];
+
+      const url = `https://router.project-osrm.org/route/v1/driving/${c1[0]},${c1[1]};${c2[0]},${c2[1]}?overview=full&geometries=geojson`;
+
+      legPromises.push(
+        fetch(url, { signal: controller.signal })
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            if (data?.routes?.[0]?.geometry?.coordinates?.length) {
+              return data.routes[0].geometry.coordinates.map(
+                ([lon, lat]: [number, number]) => [lat, lon] as [number, number]
+              );
+            }
+            return legFallback;
+          })
+          .catch(() => legFallback)
+      );
+    }
+
+    Promise.all(legPromises)
+      .then((legArrays) => {
         clearTimeout(timeoutId);
-        if (data?.routes?.[0]?.geometry?.coordinates) {
-          const roadPoints: [number, number][] = data.routes[0].geometry.coordinates.map(
-            ([lon, lat]: [number, number]) => [lat, lon]
-          );
-          setOsrmRoadPositions(roadPoints);
+        const combined = legArrays.flat();
+        if (combined.length > 0) {
+          setOsrmRoadPositions(combined);
         } else {
           setOsrmRoadPositions(fallbackCoords);
         }
